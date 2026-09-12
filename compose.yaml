@@ -1,0 +1,72 @@
+name: game-intelligence
+
+x-node: &node
+  image: node:24.15.0-alpine
+  working_dir: /app
+  entrypoint: ["sh", "-c", "corepack enable && exec pnpm \"$$@\"", "--"]
+  volumes:
+    - .:/app
+    - root_node_modules:/app/node_modules
+    - web_node_modules:/app/apps/web/node_modules
+    - api_node_modules:/app/apps/server/node_modules
+    - corepack_cache:/root/.cache/node/corepack
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-game_intelligence}
+      POSTGRES_USER: ${POSTGRES_USER:-game_intelligence}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    command: ["postgres", "-c", "shared_buffers=64MB", "-c", "max_connections=30"]
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  gint-api:
+    <<: *node
+    container_name: gint-api
+    command: ["--filter", "@game-intelligence/server", "dev"]
+    networks:
+      - default
+      - game-intelligence-network
+    environment:
+      PORT: 3000
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in .env}
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  gint-web:
+    <<: *node
+    container_name: gint-web
+    command: ["--filter", "@game-intelligence/web", "dev"]
+    networks:
+      - game-intelligence-network
+    restart: unless-stopped
+
+  gint-nginx:
+    image: nginx:stable-alpine
+    container_name: gint-nginx
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - game-intelligence-network
+    ports:
+      - "8081:80"
+    depends_on:
+      - gint-api
+      - gint-web
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  root_node_modules:
+  web_node_modules:
+  api_node_modules:
+  corepack_cache:
+
+networks:
+  default:
+  game-intelligence-network:
+    external: true

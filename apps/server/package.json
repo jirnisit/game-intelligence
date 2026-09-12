@@ -1,0 +1,8 @@
+{
+  "name": "@game-intelligence/server",
+  "private": true,
+  "type": "module",
+  "scripts": { "dev": "tsx watch src/index.ts", "build": "tsc", "check": "tsc --noEmit", "start": "node dist/index.js" },
+  "dependencies": { "fastify": "^5.0.0", "pg": "^8.0.0" },
+  "devDependencies": { "@types/node": "^24.0.0", "@types/pg": "^8.0.0", "tsx": "^4.0.0", "typescript": "^5.9.0" }
+}
