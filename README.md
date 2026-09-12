@@ -126,3 +126,24 @@ DATABASE_URL=postgresql://user:password@database-host:5432/database_name
 หลังแก้ให้เรียก `make up` เพื่อ recreate API ด้วย environment ใหม่
 Compose ยังเปิดฐานข้อมูล local ตามเดิม แต่ API จะเชื่อมเฉพาะปลายทางใน URI
 หากต้องการเปิดเฉพาะ API โดยไม่เริ่ม db local ใช้ `docker compose up -d --no-deps gint-api`
+
+## ฐานข้อมูลตัวละคร
+
+เพิ่ม schema และไฟล์ JSON ตัวอย่างจาก Helen, Mei และ Eliade แล้ว รองรับไทย/อังกฤษ,
+สกิลย่อยที่ต้องกดค้าง, บัฟสำหรับ filter และผลทดแทนตาม Awakening
+ใช้ `make migrate` สำหรับโครงสร้าง และ `make import` สำหรับข้อมูล JSON แยกกัน
+ข้อมูลอยู่ใน `database/data/` ซึ่ง Git ignore ไว้
+อ่านโครงสร้างและตัวอย่าง query ที่ [database/README.md](database/README.md)
+
+## หน้าตัวละคร
+
+เว็บแสดงรายชื่อและรายละเอียด 6 สกิลหลัก พร้อมสลับภาษาและเลือก Awakening
+กรอง ATK/DEF/CRIT และบัฟอื่นได้ โดยแยกผู้รับเป็นตัวเองหรือทั้งทีม
+บัฟที่ต้องผสมสถานะ เช่น Lunar Eclipse จะแสดงเงื่อนไขในรายละเอียด
+ใช้ `make test` เพื่อทดสอบ API/filter กับฐานข้อมูลชั่วคราวแยกจากระบบจริง
+
+## Reset ฐานข้อมูล
+
+`make reset-db` ลบข้อมูลในตารางของแอปตาม `DATABASE_URL` แล้วสร้าง schema ใหม่
+ไม่มีการ import อัตโนมัติ หากต้องการข้อมูลกลับมาให้รัน `make import` แยก
+ไฟล์ JSON และ node_modules volumes ไม่ถูกลบ

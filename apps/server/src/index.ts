@@ -1,7 +1,6 @@
-import Fastify from 'fastify';
+import { createApp } from './app.js';
 import pg from 'pg';
 
-const app = Fastify({ logger: true });
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL is required');
 }
@@ -11,16 +10,8 @@ const pool = new pg.Pool({
   connectionTimeoutMillis: 3000,
   query_timeout: 3000,
 });
+const app = createApp(pool, true);
 pool.on('error', (error) => app.log.error(error, 'Database pool error'));
-app.get('/api/health', async (_request, reply) => {
-  try {
-    await pool.query('SELECT 1');
-    return { status: 'ok', database: 'connected' };
-  } catch (error) {
-    app.log.error(error, 'Database health check failed');
-    return reply.code(503).send({ status: 'unavailable', database: 'disconnected' });
-  }
-});
 app.addHook('onClose', async () => { await pool.end(); });
 for (const signal of ['SIGINT', 'SIGTERM']) {
   process.once(signal, () => {

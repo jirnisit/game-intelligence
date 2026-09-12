@@ -1,0 +1,27 @@
+# Isolated test database; never uses DATABASE_URL or the application database volume.
+services:
+  test-db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_PASSWORD: isolated-test-only
+    tmpfs:
+      - /var/lib/postgresql/data
+    networks:
+      - test
+  test:
+    image: node:24.15.0-alpine
+    working_dir: /app/apps/server
+    entrypoint: ["node", "--test", "tests/characters.test.mjs"]
+    environment:
+      TEST_DATABASE_URL: postgresql://postgres:isolated-test-only@test-db:5432/postgres
+    volumes:
+      - .:/app:ro
+      - root_node_modules:/app/node_modules:ro
+      - api_node_modules:/app/apps/server/node_modules:ro
+    depends_on:
+      - test-db
+    networks:
+      - test
+networks:
+  test:
+    internal: true

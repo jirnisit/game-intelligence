@@ -22,6 +22,8 @@ ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=server-dependencies --chown=node:node /app /app
 COPY --from=build --chown=node:node /app/apps/server/dist /app/apps/server/dist
+COPY --chown=node:node apps/server/scripts /app/apps/server/scripts
+COPY --chown=node:node database /app/database
 USER node
 EXPOSE 3000
 CMD ["node", "apps/server/dist/index.js"]

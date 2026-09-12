@@ -1,4 +1,5 @@
 .git
+database/data
 node_modules
 **/node_modules
 **/dist

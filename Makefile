@@ -1,8 +1,12 @@
 .DEFAULT_GOAL := help
 COMPOSE := docker compose
 
-.PHONY: help install up down restart build logs ps check shell db-shell
+.PHONY: reset-db test help migrate import install up down restart build logs ps check shell db-shell
 help:
+	@echo "make reset-db Delete application data and recreate schema (DATABASE_URL)"
+	@echo "make test     Run API/database tests in an isolated test database"
+	@echo "make import   Import local JSON data (optional: FILE=/app/database/data/mei.json)"
+	@echo "make migrate  Apply database schema migrations"
 	@echo "make up       Start development services"
 	@echo "make down     Stop containers (keep database)"
 	@echo "make restart  Restart containers"
@@ -44,3 +48,16 @@ shell:
 
 db-shell:
 	$(COMPOSE) exec db sh -c 'psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"'
+
+migrate:
+	$(COMPOSE) run --rm --no-deps gint-api --filter @game-intelligence/server db:migrate
+
+import:
+	$(COMPOSE) run --rm --no-deps gint-api --filter @game-intelligence/server db:import $(if $(FILE),"$(FILE)")
+
+test:
+	@trap '$(COMPOSE) -f compose.yaml -f compose.test.yaml rm -sf test-db >/dev/null' EXIT; \
+	$(COMPOSE) -f compose.yaml -f compose.test.yaml run --rm test
+
+reset-db:
+	$(COMPOSE) run --rm --no-deps gint-api --filter @game-intelligence/server db:reset
