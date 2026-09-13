@@ -147,3 +147,60 @@ Compose ยังเปิดฐานข้อมูล local ตามเด�
 `make reset-db` ลบข้อมูลในตารางของแอปตาม `DATABASE_URL` แล้วสร้าง schema ใหม่
 ไม่มีการ import อัตโนมัติ หากต้องการข้อมูลกลับมาให้รัน `make import` แยก
 ไฟล์ JSON และ node_modules volumes ไม่ถูกลบ
+
+## Kab Game frontend
+
+ชื่อโปรเจกต์คือ `game-intelligence`; ชื่อเว็บคือ **Kab Game** ใช้ Vue Router, TSX และ Tailwind
+
+- `/` — Home แสดงรายการเกมจาก `apps/web/src/core/config/games.ts` โดยไม่เรียก API
+- `/game/:game/characters` และ `/game/:game/characters/:characterId` — ตัวละครและรายละเอียด
+- `/game/:game/teams` และ `/game/:game/teams/:teamId` — ทีมและรายละเอียด
+- ตัวอย่าง: `/game/limit-zero-breakers/characters`; `:game` เป็น route parameter ที่ใช้กรองข้อมูล
+
+```text
+apps/web/src/
+├── app/
+│   ├── layouts/            # Layout ระดับแอปสำหรับหน้าเกม
+│   ├── pages/              # 404
+│   ├── providers/
+│   ├── router/index.ts     # รวม route definitions ไว้ที่เดียว
+│   └── styles/             # Tailwind setup, base defaults, typography tokens
+├── core/
+│   ├── api/
+│   ├── config/             # รายการเกมและภาษา
+│   └── types/
+├── features/
+│   ├── home/pages/
+│   ├── character/          # pages/CharactersPage, pages/CharacterPage, components/CharacterCard, services/, types/
+│   └── teams/              # pages/, services/, types/
+├── shared/composables/     # useLanguage, useGame
+└── main.ts
+```
+
+Feature แบ่งตามความสามารถ ไม่แบ่งตามชื่อเกม แต่ละ feature เก็บ components/stores เพิ่มเมื่อจำเป็น
+ใช้ `types/` แทน `models/` และไม่สร้าง routes หรือ stylesheets ใน feature
+ใช้ Tailwind utilities ใน TSX; CSS กลางมีเฉพาะ base defaults และ design tokens
+
+### Typography
+
+Material 3 มี Display, Headline, Title, Body, Label แต่ละกลุ่มมี `s`, `m`, `l` และ `-emphasized` รวม 30 tokens
+ตัวอย่าง: `text-display-l`, `text-headline-m-emphasized`, `text-title-s`, `text-body-l`, `text-label-m-emphasized`
+ใช้ responsive variants ได้ เช่น `text-headline-l md:text-display-s`
+กำหนด size, line-height, letter-spacing และ weight ร่วมกันที่ `app/styles/typography.css` โดยใช้ font stack ของแอป
+อ้างอิง metrics จาก [Material 3 AndroidX tokens](https://github.com/androidx/androidx/blob/androidx-main/compose/material3/material3/src/commonMain/kotlin/androidx/compose/material3/tokens/TypeScaleTokens.kt) และ [Tailwind theme typography](https://tailwindcss.com/docs/font-size#customizing-your-theme)
+
+ไฟล์ logo และ favicon อยู่ใน `apps/web/public/` และเรียกผ่าน `/ชื่อไฟล์`
+Vite รองรับ URL ย่อยโดยตรง; static hosting ต้องตั้ง SPA fallback เป็น `index.html`
+ตรวจ DOM/navigation โดยไม่ถ่ายภาพหน้าจอ: `docker compose run --rm --no-deps gint-web --filter @game-intelligence/web test`
+
+### Color system
+
+`app/styles/palette.css` → `app/styles/colors.css` → semantic Tailwind utilities in TSX.
+The five primitive palettes (primary/secondary/tertiary/neutral/error) each have shades 50–950.
+Raw `--palette-primary-500` variables are deliberately not exposed as Tailwind color utilities.
+Use `bg-primary text-on-primary` for a primary action, `bg-surface-container text-on-surface` for a card, and `text-on-surface-variant` for a hint.
+Choose typography separately, for example `text-body-s text-on-surface` for small normal text.
+
+The header theme control offers System, Light, and Dark and saves the preference locally. Semantic roles switch through `data-theme` on the document element; new components need no theme-specific shades.
+`states.css` defines independent hover/focus/pressed/disabled opacity values and the `state-layer` utility; use it for custom interactive surfaces. Buttons receive it from base defaults. Disabled custom controls must also block interaction or use native disabled controls; opacity alone does not disable behavior.
+Typography, palette, role mapping, and interaction state each have their own file.

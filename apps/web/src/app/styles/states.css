@@ -1,0 +1,42 @@
+/* Interaction state is independent of semantic color roles. */
+:root {
+  --state-hover-opacity: 0.08;
+  --state-focus-opacity: 0.12;
+  --state-pressed-opacity: 0.12;
+  --state-disabled-opacity: 0.38;
+}
+@utility state-layer {
+  position: relative;
+  isolation: isolate;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: currentColor;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 150ms;
+  }
+  @media (hover: hover) {
+    &:hover:not(:disabled):not([aria-disabled="true"])::after {
+      opacity: var(--state-hover-opacity);
+    }
+  }
+  &:focus-visible:not(:disabled):not([aria-disabled="true"])::after {
+    opacity: var(--state-focus-opacity);
+  }
+  &:active:not(:disabled):not([aria-disabled="true"])::after {
+    opacity: var(--state-pressed-opacity);
+  }
+  &:disabled,
+  &[aria-disabled="true"] {
+    cursor: default;
+    opacity: var(--state-disabled-opacity);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    &::after {
+      transition: none;
+    }
+  }
+}

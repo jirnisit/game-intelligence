@@ -1,0 +1,53 @@
+@import "tailwindcss";
+@import "./typography.css";
+@import "./palette.css";
+@import "./colors.css";
+@import "./states.css";
+
+@layer base {
+  :root {
+    font-family: ui-sans-serif, system-ui, sans-serif;
+    font-synthesis: none;
+    @apply bg-surface text-on-surface;
+  }
+  body {
+    @apply text-body-m;
+  }
+  button,
+  a,
+  input,
+  select {
+    outline-offset: 4px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button,
+  input,
+  select {
+    @apply text-body-m rounded-lg;
+  }
+  button {
+    @apply state-layer cursor-pointer border border-outline-variant bg-surface-container-high px-4 py-2.5 text-on-surface;
+  }
+  input,
+  select {
+    @apply min-h-11 w-full border border-outline bg-surface-container-lowest px-3 py-[11px] text-on-surface accent-primary;
+  }
+  input::placeholder {
+    @apply text-on-surface-variant;
+  }
+  select {
+    @apply cursor-pointer;
+  }
+  :where(button, a, input, select, summary):focus-visible {
+    @apply outline-2 outline-primary;
+  }
+  input:focus,
+  select:focus {
+    @apply border-primary;
+  }
+  input:disabled,
+  select:disabled {
+    cursor: default;
+    opacity: var(--state-disabled-opacity);
+  }
+}

@@ -98,15 +98,16 @@ export function createApp(pool: pg.Pool, logger = false) {
      FROM (VALUES (1,t.character_1_id),(2,t.character_2_id),(3,t.character_3_id)) AS member(slot,id)
      JOIN characters c ON c.id=member.id) AS characters
     FROM teams t JOIN games g ON g.id=t.game_id`;
-  app.get<{ Querystring: { limit: number; offset: number } }>('/api/teams', {
+  app.get<{ Querystring: { game?: string; limit: number; offset: number } }>('/api/teams', {
     schema: { querystring: { type: 'object', additionalProperties: false, properties: {
+      game: { type: 'string', maxLength: 100 },
       limit: { type: 'integer', minimum: 1, maximum: 100, default: 24 },
       offset: { type: 'integer', minimum: 0, maximum: 100000, default: 0 },
     } } },
   }, async ({ query }) => {
     const [items, count] = await Promise.all([
-      pool.query(teamSelect + ` ORDER BY t.name->>'en',t.id LIMIT $1 OFFSET $2`, [query.limit,query.offset]),
-      pool.query('SELECT count(*)::integer AS total FROM teams'),
+      pool.query(teamSelect + ` WHERE ($1::text IS NULL OR t.game_id=$1) ORDER BY t.name->>'en',t.id LIMIT $2 OFFSET $3`, [query.game ?? null,query.limit,query.offset]),
+      pool.query('SELECT count(*)::integer AS total FROM teams WHERE ($1::text IS NULL OR game_id=$1)', [query.game ?? null]),
     ]);
     return { items: items.rows, total: count.rows[0].total };
   });

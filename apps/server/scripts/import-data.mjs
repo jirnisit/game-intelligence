@@ -1,7 +1,8 @@
-import { readFile, readdir, stat } from 'node:fs/promises';
-import { resolve, join } from 'node:path';
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
+import { collectImportFiles } from './import-files.mjs';
 
 // Fixed dependency order and primary keys; never accept SQL identifiers from JSON.
 const tables = {
@@ -11,9 +12,7 @@ const tables = {
   effects: ['id'], status_applications: ['id'],
 };
 const input = process.argv[2] ? resolve(process.argv[2]) : fileURLToPath(new URL('../../../database/data/', import.meta.url));
-const info = await stat(input).catch(() => { throw new Error('Import path not found. Create database/data JSON files or pass a file/directory path.'); });
-const files = info.isDirectory() ? (await readdir(input)).filter(n => n.endsWith('.json')).sort().map(n => join(input, n)) : [input];
-if (!files.length) throw new Error('No JSON files found; nothing imported');
+const files = await collectImportFiles(input);
 const documents = [];
 for (const file of files) {
   const doc = JSON.parse(await readFile(file, 'utf8'));

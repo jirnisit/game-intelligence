@@ -11,7 +11,7 @@ services:
   test:
     image: node:24.15.0-alpine
     working_dir: /app/apps/server
-    entrypoint: ["node", "--test", "tests/characters.test.mjs"]
+    entrypoint: ["node", "--test", "tests/characters.test.mjs", "tests/import-files.test.mjs"]
     environment:
       TEST_DATABASE_URL: postgresql://postgres:isolated-test-only@test-db:5432/postgres
     volumes:

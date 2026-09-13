@@ -56,7 +56,16 @@ that is not an extra skill or another table.
 make migrate
 make import
 make import FILE=/app/database/data/mei.json
+make import FILE=./characters/groupB
+make import FILE=./characters/groupB/mei
 ```
+
+`FILE` accepts a JSON file or a directory. Directories are scanned recursively for `.json`
+files in sorted path order; other files and nested symlinks are ignored. Relative paths passed
+to `make import` start at the project root; absolute paths refer to paths inside the container
+(the project is mounted at `/app`). Without `FILE`, the default remains `database/data/`.
+An empty directory tree fails before connecting to the database. Keep only import-format JSON
+within the selected tree; every JSON file must pass the existing schemaVersion 2 validation.
 
 A single-character import requires shared lookup data to exist. All files are imported in one
 transaction, in table dependency order. Primary keys are upserted. Omitted fields and rows are

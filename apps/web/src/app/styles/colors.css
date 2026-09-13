@@ -1,0 +1,124 @@
+/* Semantic roles are independently mapped for each theme.
+   Tailwind inline aliases resolve the current element's semantic variables. */
+/* Expose semantic colors only; primitive shades are not UI utilities. */
+@theme {
+  --color-*: initial;
+}
+@theme inline {
+  --color-primary: var(--sys-primary);
+  --color-on-primary: var(--sys-on-primary);
+  --color-primary-container: var(--sys-primary-container);
+  --color-on-primary-container: var(--sys-on-primary-container);
+  --color-secondary: var(--sys-secondary);
+  --color-on-secondary: var(--sys-on-secondary);
+  --color-secondary-container: var(--sys-secondary-container);
+  --color-on-secondary-container: var(--sys-on-secondary-container);
+  --color-tertiary: var(--sys-tertiary);
+  --color-on-tertiary: var(--sys-on-tertiary);
+  --color-tertiary-container: var(--sys-tertiary-container);
+  --color-on-tertiary-container: var(--sys-on-tertiary-container);
+  --color-error: var(--sys-error);
+  --color-on-error: var(--sys-on-error);
+  --color-error-container: var(--sys-error-container);
+  --color-on-error-container: var(--sys-on-error-container);
+  --color-surface: var(--sys-surface);
+  --color-on-surface: var(--sys-on-surface);
+  --color-surface-container-lowest: var(--sys-surface-container-lowest);
+  --color-surface-container-low: var(--sys-surface-container-low);
+  --color-surface-container: var(--sys-surface-container);
+  --color-surface-container-high: var(--sys-surface-container-high);
+  --color-surface-container-highest: var(--sys-surface-container-highest);
+  --color-on-surface-variant: var(--sys-on-surface-variant);
+  --color-outline: var(--sys-outline);
+  --color-outline-variant: var(--sys-outline-variant);
+}
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+  --sys-primary: var(--palette-primary-700);
+  --sys-on-primary: var(--palette-primary-50);
+  --sys-primary-container: var(--palette-primary-100);
+  --sys-on-primary-container: var(--palette-primary-950);
+  --sys-secondary: var(--palette-secondary-700);
+  --sys-on-secondary: var(--palette-secondary-50);
+  --sys-secondary-container: var(--palette-secondary-100);
+  --sys-on-secondary-container: var(--palette-secondary-950);
+  --sys-tertiary: var(--palette-tertiary-700);
+  --sys-on-tertiary: var(--palette-tertiary-50);
+  --sys-tertiary-container: var(--palette-tertiary-100);
+  --sys-on-tertiary-container: var(--palette-tertiary-950);
+  --sys-error: var(--palette-error-700);
+  --sys-on-error: var(--palette-error-50);
+  --sys-error-container: var(--palette-error-100);
+  --sys-on-error-container: var(--palette-error-950);
+  --sys-surface: var(--palette-neutral-50);
+  --sys-on-surface: var(--palette-neutral-950);
+  --sys-surface-container-lowest: var(--palette-neutral-50);
+  --sys-surface-container-low: var(--palette-neutral-100);
+  --sys-surface-container: var(--palette-neutral-100);
+  --sys-surface-container-high: var(--palette-neutral-200);
+  --sys-surface-container-highest: var(--palette-neutral-300);
+  --sys-on-surface-variant: var(--palette-neutral-600);
+  --sys-outline: var(--palette-neutral-500);
+  --sys-outline-variant: var(--palette-neutral-300);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --sys-primary: var(--palette-primary-300);
+    --sys-on-primary: var(--palette-primary-950);
+    --sys-primary-container: var(--palette-primary-900);
+    --sys-on-primary-container: var(--palette-primary-100);
+    --sys-secondary: var(--palette-secondary-300);
+    --sys-on-secondary: var(--palette-secondary-950);
+    --sys-secondary-container: var(--palette-secondary-900);
+    --sys-on-secondary-container: var(--palette-secondary-100);
+    --sys-tertiary: var(--palette-tertiary-300);
+    --sys-on-tertiary: var(--palette-tertiary-950);
+    --sys-tertiary-container: var(--palette-tertiary-900);
+    --sys-on-tertiary-container: var(--palette-tertiary-100);
+    --sys-error: var(--palette-error-300);
+    --sys-on-error: var(--palette-error-950);
+    --sys-error-container: var(--palette-error-900);
+    --sys-on-error-container: var(--palette-error-100);
+    --sys-surface: var(--palette-neutral-950);
+    --sys-on-surface: var(--palette-neutral-50);
+    --sys-surface-container-lowest: var(--palette-neutral-950);
+    --sys-surface-container-low: var(--palette-neutral-900);
+    --sys-surface-container: var(--palette-neutral-900);
+    --sys-surface-container-high: var(--palette-neutral-800);
+    --sys-surface-container-highest: var(--palette-neutral-700);
+    --sys-on-surface-variant: var(--palette-neutral-300);
+    --sys-outline: var(--palette-neutral-400);
+    --sys-outline-variant: var(--palette-neutral-700);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --sys-primary: var(--palette-primary-300);
+  --sys-on-primary: var(--palette-primary-950);
+  --sys-primary-container: var(--palette-primary-900);
+  --sys-on-primary-container: var(--palette-primary-100);
+  --sys-secondary: var(--palette-secondary-300);
+  --sys-on-secondary: var(--palette-secondary-950);
+  --sys-secondary-container: var(--palette-secondary-900);
+  --sys-on-secondary-container: var(--palette-secondary-100);
+  --sys-tertiary: var(--palette-tertiary-300);
+  --sys-on-tertiary: var(--palette-tertiary-950);
+  --sys-tertiary-container: var(--palette-tertiary-900);
+  --sys-on-tertiary-container: var(--palette-tertiary-100);
+  --sys-error: var(--palette-error-300);
+  --sys-on-error: var(--palette-error-950);
+  --sys-error-container: var(--palette-error-900);
+  --sys-on-error-container: var(--palette-error-100);
+  --sys-surface: var(--palette-neutral-950);
+  --sys-on-surface: var(--palette-neutral-50);
+  --sys-surface-container-lowest: var(--palette-neutral-950);
+  --sys-surface-container-low: var(--palette-neutral-900);
+  --sys-surface-container: var(--palette-neutral-900);
+  --sys-surface-container-high: var(--palette-neutral-800);
+  --sys-surface-container-highest: var(--palette-neutral-700);
+  --sys-on-surface-variant: var(--palette-neutral-300);
+  --sys-outline: var(--palette-neutral-400);
+  --sys-outline-variant: var(--palette-neutral-700);
+}

@@ -5,7 +5,7 @@ COMPOSE := docker compose
 help:
 	@echo "make reset-db Delete application data and recreate schema (DATABASE_URL)"
 	@echo "make test     Run API/database tests in an isolated test database"
-	@echo "make import   Import local JSON data (optional: FILE=/app/database/data/mei.json)"
+	@echo "make import   Import JSON file or directory recursively (optional: FILE=./characters/groupB)"
 	@echo "make migrate  Apply database schema migrations"
 	@echo "make up       Start development services"
 	@echo "make down     Stop containers (keep database)"
@@ -53,7 +53,7 @@ migrate:
 	$(COMPOSE) run --rm --no-deps gint-api --filter @game-intelligence/server db:migrate
 
 import:
-	$(COMPOSE) run --rm --no-deps gint-api --filter @game-intelligence/server db:import $(if $(FILE),"$(FILE)")
+	$(COMPOSE) run --rm --no-deps gint-api --filter @game-intelligence/server db:import $(if $(FILE),"$(if $(filter /%,$(FILE)),$(FILE),/app/$(FILE))")
 
 test:
 	@trap '$(COMPOSE) -f compose.yaml -f compose.test.yaml rm -sf test-db >/dev/null' EXIT; \

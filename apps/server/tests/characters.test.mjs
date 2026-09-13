@@ -126,6 +126,11 @@ test('teams preserve free-form bilingual steps and enforce three distinct same-g
 
 test('team API lists imported team and exposes ordered members and multiline notes',async()=>{
  const list=await get('/api/teams');
+ const filtered=await get('/api/teams?game=limit-zero-breakers');
+ assert.deepEqual(filtered,list);
+ const otherGame=await get('/api/teams?game=missing-game');
+ assert.equal(otherGame.total,0);
+ assert.deepEqual(otherGame.items,[]);
  assert.ok(list.items.some(t=>t.id==='helen-mei-eliade'));
  const team=await get('/api/teams/helen-mei-eliade');
  assert.deepEqual(team.characters.map(c=>c.id),['helen','mei','eliade']);
