@@ -14,12 +14,15 @@ try {
   await client.query('BEGIN');
   await client.query('SELECT pg_advisory_xact_lock(73190421)');
   await client.query('SET LOCAL search_path TO public');
+  await client.query('DROP VIEW IF EXISTS character_buffs, character_effects, character_status_rules');
   // Drop only this application's tables. No CASCADE: unrelated dependencies must abort reset.
   await client.query(`DROP TABLE IF EXISTS
+    public.reaction_pairs, public.elemental_reactions, public.skill_elements, public.character_statuses,
     public.teams, public.status_applications, public.effects, public.status_rules, public.statuses,
     public.awakenings, public.skill_actions, public.skills, public.sources,
     public.characters, public.character_classes, public.elements, public.games,
     public.schema_migrations`);
+  await client.query('DROP FUNCTION IF EXISTS validate_status_game(), validate_skill_element_game(), validate_reaction_game()');
   await client.query('CREATE TABLE schema_migrations (name text PRIMARY KEY, checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())');
   for (const { name, sql } of migrations) {
     await client.query(sql);

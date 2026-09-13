@@ -68,7 +68,10 @@ beforeEach(async () => {
       if (url.pathname.endsWith("/meta"))
         data = {
           games: [],
+          reactions: [{id:"fusion",game_id:"limit-zero-breakers",name:{en:"Fusion"},pairs:[{game_id:"limit-zero-breakers",reaction_id:"fusion",element_a:"earth",element_b:"grass"}]}],
           elements: [
+            {game_id:"limit-zero-breakers",code:"earth",name:{en:"Earth"}},
+            {game_id:"limit-zero-breakers",code:"grass",name:{en:"Grass"}},
             {
               game_id: "limit-zero-breakers",
               code: "light",
@@ -135,13 +138,14 @@ describe("Kab Game navigation and TSX", () => {
     expect(root.querySelectorAll('[t-data="character-card"]')).toHaveLength(1);
     expect(
       root.querySelectorAll('select[aria-label="Awakening"] option'),
-    ).toHaveLength(6);
+    ).toHaveLength(0);
     expect(
       requests.some((url) => url.includes("game=limit-zero-breakers")),
     ).toBe(true);
     change('[t-data="buff-filter"]', "crit_dmg");
     change('[t-data="target-filter"]', "all_allies");
     await new Promise((resolve) => setTimeout(resolve, 250));
+    expect(requests.at(-1)).not.toContain("awakening=");
     expect(requests.at(-1)).toContain("buff=crit_dmg");
     expect(requests.at(-1)).toContain("target=all_allies");
     await click('[t-data="text-button"]');
@@ -150,7 +154,7 @@ describe("Kab Game navigation and TSX", () => {
     expect(requests.at(-1)).not.toContain("buff=");
   });
 
-  it("opens character details, changes awakening and returns through router links", async () => {
+  it("opens all character variants without an awakening selector and returns through router links", async () => {
     await router.push("/game/limit-zero-breakers/characters");
     await settle();
     await click('[t-data="character-card"]');
@@ -159,9 +163,8 @@ describe("Kab Game navigation and TSX", () => {
       "/game/limit-zero-breakers/characters/mei",
     );
     expect(root.querySelectorAll('[t-data="hold-badge"]')).toHaveLength(1);
-    change('select[aria-label="Awakening"]', "5");
-    await settle();
-    expect(requests).toContain("/api/characters/mei?awakening=5");
+    expect(root.querySelector('select[aria-label="Awakening"]')).toBeNull();
+    expect(requests).toContain("/api/characters/mei?awakening=0");
     await click(
       'a[href="/game/limit-zero-breakers/characters"][t-data=\"back-link\"]',
     );
@@ -238,12 +241,10 @@ it("loads only detail data on direct character entry and reloads when the ID cha
   await settle();
   expect(requests).toEqual(["/api/characters/mei?awakening=0"]);
   expect(root.querySelector('[t-data="filters"]')).toBeNull();
-  change('select[aria-label="Awakening"]', "3");
-  await settle();
-  expect(requests.at(-1)).toBe("/api/characters/mei?awakening=3");
+  expect(root.querySelector('select[aria-label="Awakening"]')).toBeNull();
   await router.push("/game/limit-zero-breakers/characters/missing");
   await settle();
-  expect(requests.at(-1)).toBe("/api/characters/missing?awakening=3");
+  expect(requests.at(-1)).toBe("/api/characters/missing?awakening=0");
   expect(root.querySelector('[t-data="profile-panel"]')).toBeNull();
   expect(root.querySelector('[role="alert"]')).not.toBeNull();
   await router.push("/game/limit-zero-breakers/characters");
@@ -270,4 +271,16 @@ it("switches the app theme through the header without changing route or typograp
   expect(root.querySelector("h1")!.className).toBe(headingClass);
   expect(router.currentRoute.value.name).toBe("home");
   localStorage.removeItem("kab-game-theme");
+});
+
+it("searches Fusion partners using the selected element and resets the pairing", async () => {
+  await router.push("/game/limit-zero-breakers/characters");
+  await settle();
+  change('[t-data="reaction-filter"]', "earth");
+  await new Promise(resolve => setTimeout(resolve,250));
+  expect(requests.at(-1)).toContain("reaction_with=earth");
+  expect(requests.at(-1)).not.toContain("awakening=");
+  await click('[t-data="text-button"]');
+  await new Promise(resolve => setTimeout(resolve,250));
+  expect(requests.at(-1)).not.toContain("reaction_with=");
 });

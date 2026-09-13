@@ -1,8 +1,9 @@
-import { defineComponent } from "vue";
+import EffectSummary from "./EffectSummary";
+import { groupEffects } from "../utils/groupEffects";
+import { computed, defineComponent } from "vue";
 import { RouterLink } from "vue-router";
 import type { Character } from "../types/character";
 import { useLanguage } from "../../../shared/composables/useLanguage";
-import { useCharacterLabels } from "../composables/useCharacterLabels";
 interface Props {
   character: Character;
   game: string;
@@ -11,7 +12,7 @@ interface Props {
 export default defineComponent<Props>(
   (props) => {
     const { t, label } = useLanguage();
-    const { stats, target, formatValue } = useCharacterLabels();
+    const groups = computed(() => groupEffects(props.character.buffs));
     return () => (
       <RouterLink
         to={`/game/${encodeURIComponent(props.game)}/characters/${encodeURIComponent(props.character.id)}`}
@@ -50,16 +51,9 @@ export default defineComponent<Props>(
           {label(props.character.race)}
         </p>
         <div class="flex flex-wrap gap-1.75 min-h-22 content-start p-[20px_0]">
-          {props.character.buffs.map((b) => (
-            <span
-              key={b.id}
-              class="text-body-s bg-primary-container text-on-primary-container p-[7px_9px] rounded-md [&_small]:text-label-s [&_small]:block [&_small]:text-on-primary-container [&_small]:mt-0.75"
-            >
-              {stats[b.stat_code]}
-              {" +"}
-              {formatValue(b)} <small>{target(b.target)}</small>
-            </span>
-          ))}
+          {groups.value.map(entries => <div key={entries[0].id} t-data="buff-group" class="bg-primary-container text-on-primary-container p-[7px_9px] rounded-md">
+            <EffectSummary entries={entries} />
+          </div>)}
           {!props.character.buffs.length ? (
             <span class="text-body-s text-on-surface-variant">
               {t("ยังไม่มีบัฟค่าสถานะที่ยืนยัน", "No documented stat buffs")}

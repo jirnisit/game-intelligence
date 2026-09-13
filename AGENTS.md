@@ -40,14 +40,16 @@
 - Store exactly six main skill categories for complete characters: Normal Attack, Special Skill, Elemental Skill, Ultimate, Support Skill and Passive Skill.
 - Each skill has one bilingual description containing all its named moves/paragraphs. Do not create separate action records.
 - `skills.has_hold` is true if any part of that skill requires a held button. It is only a marker, not a separate skill.
-- Confirmed hold skills: `mei-normal_attack` (Blazing Sun paragraph) and `eliade-special` (Luminance Drain).
+- Confirmed hold skills: `mei-normal_attack` (Blazing Sun paragraph) `eliade-special` (Luminance Drain), and `autrey-special` (Vortex).
 - “While holding Devotion/Darkness/Rift Gauge” means possessing a resource, NOT holding a button. Preserve this distinction.
-- `statuses` describe buffs, debuffs, resources and triggered damage. `status_applications` record the main skill, documented acquisition route and target.
+- `statuses` are game-wide definitions of buffs, debuffs, resources and triggered damage; they have no character owner. `character_statuses` links usage/recipients; only `status_applications` proves a skill grants a status. Shared effects/rules have null character_id; character-specific awakening variants remain scoped.
 - `effects` are the filterable numeric effects; `status_rules` carry stack/duration mechanics. Mechanics/conditions JSON supplements normalized columns; do not move filterable stats into prose only.
 - Do not store screenshot sources, filenames, or source_id. Read supplied images carefully and encode actual buff/debuff effects and recipients. Preserve unknowns rather than inventing values.
 
 ## Analysis rules
-- Filter candidates by game/class/element and effects first; load descriptions for selected characters only.
+- Filter candidates by game/class/element and effects first; load descriptions for selected characters only. Search includes all awakening levels by default; explicit awakening filters are for level-specific analysis. UI displays all variants with Base/Awakening labels.
+- Use normalized skill_elements, elemental_reactions and reaction_pairs for pair search. User-confirmed Reaction sequence: A uses an Elemental Skill, then switching to B of the paired element causes B to receive the Reaction. B does NOT need to cast an Elemental Skill. Merely having paired characters in a team is insufficient; the switch is part of the sequence.
+- Explain this as “A ใช้สกิลธาตุ → สลับไป B ธาตุคู่กัน → เกิด Reaction” and use “ถ้าเกิด Reaction”, not “ผู้กระตุ้น Reaction”. Do not require two consecutive Elemental Skill casts or assign Reaction rewards to B’s Elemental Skill cast. Keep each documented skill/resource reward separate; do not infer unconfirmed timing, windows or other mechanics.
 - Use target and effect_type as well as stat_code. Team CRIT DMG, self CRIT DMG, HP healing, Max HP increase, damage taken and skill-only damage are different effects.
 - All percentages use displayed percentage points: 40 = 40%, 300 percent_of_stat = 3 × the source stat. Do not treat 300 as 300×.
 - Awakening intervals are half-open: `awakening_from <= level AND (awakening_until IS NULL OR level < awakening_until)`. Select exactly one version of a mechanic; never add replacement values together.
@@ -67,7 +69,7 @@
 
 ## Local data imports
 - Data lives in `database/data/`, ignored by Git and Docker build context. Never force-add it. Keep schema, importer and format documentation tracked.
-- Keep one JSON file per character plus `00-reference.json` for shared lookup rows. Use schemaVersion 2 and table arrays as documented.
+- Keep one JSON file per character, `00-reference.json` for shared lookups, and `01-statuses.json` for shared statuses/reactions. Use schemaVersion 2 and table arrays as documented.
 - Import uses parameterized upserts in dependency order, with one transaction for the whole input. Reuse stable primary keys when editing; do not regenerate IDs.
 - Missing rows/fields are not deleted or reset. Explicit null clears a nullable value. Deletion needs a separate deliberate operation.
 - Do not run import automatically during migration or server startup. Do not claim a live DB update unless import succeeded there.
@@ -78,5 +80,5 @@
 - The initial schema is consolidated in `001_schema.sql` at the user’s request. Uncommitted initial migrations may be consolidated when explicitly requested; otherwise applied migrations are immutable and changes need new numbered files. The runner checks SHA-256 and uses a transaction per file plus an advisory lock.
 - `make reset-db` is an explicit destructive command: deletes application tables and recreates schema in one transaction, without importing JSON. Run only when the user requests an actual reset; never for routine verification.
 - No automatic DROP/reset/down migration. Test upgrades on a clean isolated PostgreSQL database and verify reruns and rollback on failure.
-- Keep FK ownership intact: skills, statuses and effects must belong to the same character. Validate non-overlapping awakening intervals when inserting new versions.
+- Keep skill ownership intact and require same-game status references. A shared status is not owned by a character. Validate non-overlapping awakening intervals when inserting new versions.
 - Do not claim data is saved in a running database unless migration actually succeeded there.

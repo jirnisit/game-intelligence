@@ -7,8 +7,9 @@ import { collectImportFiles } from './import-files.mjs';
 // Fixed dependency order and primary keys; never accept SQL identifiers from JSON.
 const tables = {
   games: ['id'], character_classes: ['game_id', 'code'], elements: ['game_id', 'code'],
-  characters: ['id'], teams: ['id'], skills: ['id'],
-  awakenings: ['character_id', 'level'], statuses: ['id'], status_rules: ['id'],
+  characters: ['id'], teams: ['id'], skills: ['id'], skill_elements: ['skill_id'],
+  awakenings: ['character_id', 'level'], statuses: ['id'], character_statuses: ['character_id','status_id','target'],
+  elemental_reactions: ['id'], reaction_pairs: ['reaction_id','element_a','element_b'], status_rules: ['id'],
   effects: ['id'], status_applications: ['id'],
 };
 const input = process.argv[2] ? resolve(process.argv[2]) : fileURLToPath(new URL('../../../database/data/', import.meta.url));
@@ -56,7 +57,7 @@ try {
     }
   }
   // Prevent replacement variants from being counted twice after manual JSON edits.
-  const overlap = await client.query(`SELECT 1 FROM status_rules a JOIN status_rules b ON a.status_id=b.status_id AND a.id<b.id WHERE int4range(a.awakening_from,a.awakening_until,'[)') && int4range(b.awakening_from,b.awakening_until,'[)') LIMIT 1`);
+  const overlap = await client.query(`SELECT 1 FROM status_rules a JOIN status_rules b ON a.status_id=b.status_id AND (a.character_id IS NULL OR b.character_id IS NULL OR a.character_id=b.character_id) AND a.id<b.id WHERE int4range(a.awakening_from,a.awakening_until,'[)') && int4range(b.awakening_from,b.awakening_until,'[)') LIMIT 1`);
   if (overlap.rowCount) throw new Error('Overlapping status rule awakening intervals');
   await client.query('COMMIT');
   console.log(`Imported ${count} rows from ${files.length} JSON file(s). Existing keys updated; no rows deleted.`);

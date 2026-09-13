@@ -25,7 +25,7 @@ export default defineComponent<Props>(
       buff = ref(""),
       recipient = ref(""),
       hold = ref(false),
-      awakening = ref(0),
+      reactionWith = ref(""),
       page = ref(0);
     const items = ref<Character[]>([]),
       total = ref(0),
@@ -50,7 +50,6 @@ export default defineComponent<Props>(
       loading.value = true;
       error.value = "";
       const params = new URLSearchParams({
-        awakening: String(awakening.value),
         limit: "24",
         offset: String(page.value * 24),
       });
@@ -58,6 +57,7 @@ export default defineComponent<Props>(
         q: q.value,
         game: game.value,
         element: element.value,
+        reaction_with: reactionWith.value,
         class: classCode.value,
         buff: buff.value,
         target: recipient.value,
@@ -89,13 +89,14 @@ export default defineComponent<Props>(
     function reset() {
       q.value = "";
       element.value = "";
+      reactionWith.value = "";
       classCode.value = "";
       buff.value = "";
       recipient.value = "";
       hold.value = false;
     }
     watch(
-      [q, game, element, classCode, buff, recipient, hold, awakening],
+      [q, game, element, classCode, buff, recipient, hold, reactionWith],
       () => {
         page.value = 0;
         clearTimeout(timer);
@@ -104,6 +105,7 @@ export default defineComponent<Props>(
     );
     watch(game, () => {
       element.value = "";
+      reactionWith.value = "";
       classCode.value = "";
     });
     watch(page, loadList);
@@ -121,10 +123,6 @@ export default defineComponent<Props>(
         {" "}
         <CharacterPageHeader
           title={t("ค้นหาตัวละครที่ใช่", "Find your next teammate")}
-          awakening={awakening.value}
-          onAwakeningChange={(value) => {
-            awakening.value = value;
-          }}
         />
         <section
           aria-label={t("ตัวกรองตัวละคร", "Character filters")}
@@ -156,6 +154,13 @@ export default defineComponent<Props>(
                   {label(e.name)}
                 </option>
               ))}
+            </select>
+          </label>
+          <label>
+            {t("หาคู่ Fusion กับธาตุ", "Fusion partner for")}
+            <select t-data="reaction-filter" value={reactionWith.value} onChange={(event) => { reactionWith.value = (event.target as HTMLSelectElement).value; }}>
+              <option value="">{t("ไม่จำกัดคู่ธาตุ", "Any pairing")}</option>
+              {visibleElements.value.filter(e => meta.value.reactions?.some(r => r.game_id === e.game_id && r.pairs.some(p => p.element_a === e.code || p.element_b === e.code))).map(e => <option key={e.code} value={e.code}>{label(e.name)}</option>)}
             </select>
           </label>
           <label>
@@ -236,8 +241,8 @@ export default defineComponent<Props>(
           </h2>
           <p>
             {t(
-              "บัฟที่มีวิธีได้รับยืนยันแล้ว • ยังต้องทำตามเงื่อนไขสกิล",
-              "Documented buff sources • Skill conditions still apply",
+              "รวมบัฟทุกระดับ Awakening • ต้องทำตามเงื่อนไขสกิล",
+              "Includes all Awakening levels • Skill conditions still apply",
             )}
           </p>
         </div>
