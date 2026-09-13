@@ -276,11 +276,16 @@ it("switches the app theme through the header without changing route or typograp
 it("searches Fusion partners using the selected element and resets the pairing", async () => {
   await router.push("/game/limit-zero-breakers/characters");
   await settle();
-  change('[t-data="reaction-filter"]', "earth");
+  expect(root.querySelector('[t-data="reaction-filter"]')).toBeNull();
+  change('[t-data="element-filter"]', "earth");
   await new Promise(resolve => setTimeout(resolve,250));
-  expect(requests.at(-1)).toContain("reaction_with=earth");
+  expect(requests.at(-1)).toContain("element=earth");
+  expect(requests.at(-1)).not.toContain("include_partners=");
+  await click('[t-data="reaction-filter"]');
+  await new Promise(resolve => setTimeout(resolve,250));
+  expect(requests.at(-1)).toContain("include_partners=true");
   expect(requests.at(-1)).not.toContain("awakening=");
   await click('[t-data="text-button"]');
   await new Promise(resolve => setTimeout(resolve,250));
-  expect(requests.at(-1)).not.toContain("reaction_with=");
+  expect(requests.at(-1)).not.toContain("include_partners=");
 });

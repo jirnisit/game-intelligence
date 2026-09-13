@@ -25,7 +25,7 @@ export default defineComponent<Props>(
       buff = ref(""),
       recipient = ref(""),
       hold = ref(false),
-      reactionWith = ref(""),
+      includePartners = ref(false),
       page = ref(0);
     const items = ref<Character[]>([]),
       total = ref(0),
@@ -57,7 +57,7 @@ export default defineComponent<Props>(
         q: q.value,
         game: game.value,
         element: element.value,
-        reaction_with: reactionWith.value,
+        include_partners: element.value && includePartners.value ? "true" : "",
         class: classCode.value,
         buff: buff.value,
         target: recipient.value,
@@ -89,23 +89,26 @@ export default defineComponent<Props>(
     function reset() {
       q.value = "";
       element.value = "";
-      reactionWith.value = "";
+      includePartners.value = false;
       classCode.value = "";
       buff.value = "";
       recipient.value = "";
       hold.value = false;
     }
     watch(
-      [q, game, element, classCode, buff, recipient, hold, reactionWith],
+      [q, game, element, classCode, buff, recipient, hold, includePartners],
       () => {
         page.value = 0;
         clearTimeout(timer);
         timer = setTimeout(loadList, 200);
       },
     );
+    watch(element, () => {
+      includePartners.value = false;
+    });
     watch(game, () => {
       element.value = "";
-      reactionWith.value = "";
+      includePartners.value = false;
       classCode.value = "";
     });
     watch(page, loadList);
@@ -143,6 +146,7 @@ export default defineComponent<Props>(
           <label>
             {t("ธาตุ", "Element")}
             <select
+              t-data="element-filter"
               value={element.value}
               onChange={(event) => {
                 element.value = (event.target as HTMLSelectElement).value;
@@ -156,13 +160,22 @@ export default defineComponent<Props>(
               ))}
             </select>
           </label>
-          <label>
-            {t("หาคู่ Fusion กับธาตุ", "Fusion partner for")}
-            <select t-data="reaction-filter" value={reactionWith.value} onChange={(event) => { reactionWith.value = (event.target as HTMLSelectElement).value; }}>
-              <option value="">{t("ไม่จำกัดคู่ธาตุ", "Any pairing")}</option>
-              {visibleElements.value.filter(e => meta.value.reactions?.some(r => r.game_id === e.game_id && r.pairs.some(p => p.element_a === e.code || p.element_b === e.code))).map(e => <option key={e.code} value={e.code}>{label(e.name)}</option>)}
-            </select>
-          </label>
+          {element.value ? (
+            <div class="flex items-center gap-3 self-end min-h-11">
+              <button
+                type="button"
+                role="switch"
+                aria-checked={includePartners.value}
+                aria-label={t("รวมธาตุคู่ Fusion", "Include Fusion partner elements")}
+                t-data="reaction-filter"
+                onClick={() => { includePartners.value = !includePartners.value; }}
+                class={`state-layer relative inline-flex h-8 min-h-0 w-13 shrink-0 items-center rounded-full border-2 p-1 ${includePartners.value ? "bg-primary border-primary text-on-primary" : "bg-surface-container-high border-outline text-on-surface-variant"}`}
+              >
+                <span aria-hidden="true" class={`h-5 w-5 rounded-full transition-transform motion-reduce:transition-none ${includePartners.value ? "translate-x-5 bg-on-primary" : "translate-x-0 bg-outline"}`} />
+              </button>
+              <span class="text-body-s text-on-surface">{t("รวมธาตุคู่ Fusion", "Include Fusion partner elements")}</span>
+            </div>
+          ) : null}
           <label>
             {t("คลาส", "Class")}
             <select
@@ -237,7 +250,7 @@ export default defineComponent<Props>(
         <div class="flex items-center justify-between gap-5 m-[32px_0_18px] [&_h2_span]:text-label-m [&_h2_span]:bg-surface-container-high [&_h2_span]:rounded-md [&_h2_span]:p-[4px_8px] [&_h2_span]:ml-2 [&_p]:text-body-s [&_p]:text-on-surface-variant max-[580px]:items-start max-[580px]:[&_p]:max-w-40 max-[580px]:[&_p]:text-right">
           <h2 class="text-title-l">
             {t("ตัวละคร", "Characters")}{" "}
-            <span>{loading.value ? "…" : total.value}</span>
+            <span>{total.value}</span>
           </h2>
           <p>
             {t(
@@ -246,56 +259,58 @@ export default defineComponent<Props>(
             )}
           </p>
         </div>
-        {error.value ? (
-          <div
-            role="alert"
-            class="text-center bg-error-container border border-error border-dashed rounded-[14px] p-[50px_24px] text-on-error-container [&_p]:m-[15px_0_22px]"
-          >
-            <h2 class="text-title-l">
-              {t("ยังโหลดข้อมูลไม่ได้", "Unable to load characters")}
-            </h2>
-            <p>
-              {t(
-                "ลองอีกครั้งเมื่อระบบข้อมูลพร้อม",
-                "Please try again when the data service is available.",
-              )}
-            </p>
-            <button
-              onClick={() => {
-                loadMeta();
-                loadList();
-              }}
+        <div t-data="character-results" class="min-h-[500px]">
+          {error.value ? (
+            <div
+              role="alert"
+              class="text-center bg-error-container border border-error border-dashed rounded-[14px] p-[50px_24px] text-on-error-container [&_p]:m-[15px_0_22px]"
             >
-              {t("ลองใหม่", "Retry")}
-            </button>
-          </div>
-        ) : loading.value ? (
-          <div
-            role="status"
-            class="text-center bg-surface-container border border-outline-variant border-dashed rounded-[14px] p-[50px_24px] text-on-surface [&_p]:m-[15px_0_22px]"
-          >
-            {t("กำลังค้นหาตัวละคร…", "Loading characters…")}
-          </div>
-        ) : !items.value.length ? (
-          <div class="text-center bg-surface-container border border-outline-variant border-dashed rounded-[14px] p-[50px_24px] text-on-surface [&_p]:m-[15px_0_22px]">
-            <h2 class="text-title-l">
-              {t("ไม่พบตัวละครตามเงื่อนไข", "No matching characters")}
-            </h2>
-            <p>
-              {t(
-                "ลองเปลี่ยนบัฟหรือผู้รับบัฟ หากยังไม่มีข้อมูล ให้เพิ่มข้อมูลตัวละครก่อน",
-                "Try another buff or recipient. If the archive is empty, add character data first.",
-              )}
-            </p>
-            <button onClick={reset}>{t("ล้างตัวกรอง", "Reset filters")}</button>
-          </div>
-        ) : (
-          <section class="grid grid-cols-3 gap-5 max-[900px]:grid-cols-2 max-[580px]:grid-cols-1">
-            {items.value.map((c) => (
-              <CharacterCard key={c.id} character={c} game={game.value} />
-            ))}
-          </section>
-        )}
+              <h2 class="text-title-l">
+                {t("ยังโหลดข้อมูลไม่ได้", "Unable to load characters")}
+              </h2>
+              <p>
+                {t(
+                  "ลองอีกครั้งเมื่อระบบข้อมูลพร้อม",
+                  "Please try again when the data service is available.",
+                )}
+              </p>
+              <button
+                onClick={() => {
+                  loadMeta();
+                  loadList();
+                }}
+              >
+                {t("ลองใหม่", "Retry")}
+              </button>
+            </div>
+          ) : loading.value && !items.value.length ? (
+            <div
+              role="status"
+              class="text-center bg-surface-container border border-outline-variant border-dashed rounded-[14px] p-[50px_24px] text-on-surface [&_p]:m-[15px_0_22px]"
+            >
+              {t("กำลังค้นหาตัวละคร…", "Loading characters…")}
+            </div>
+          ) : !items.value.length ? (
+            <div class="text-center bg-surface-container border border-outline-variant border-dashed rounded-[14px] p-[50px_24px] text-on-surface [&_p]:m-[15px_0_22px]">
+              <h2 class="text-title-l">
+                {t("ไม่พบตัวละครตามเงื่อนไข", "No matching characters")}
+              </h2>
+              <p>
+                {t(
+                  "ลองเปลี่ยนบัฟหรือผู้รับบัฟ หากยังไม่มีข้อมูล ให้เพิ่มข้อมูลตัวละครก่อน",
+                  "Try another buff or recipient. If the archive is empty, add character data first.",
+                )}
+              </p>
+              <button onClick={reset}>{t("ล้างตัวกรอง", "Reset filters")}</button>
+            </div>
+          ) : (
+            <section aria-busy={loading.value} class="grid grid-cols-3 gap-5 max-[900px]:grid-cols-2 max-[580px]:grid-cols-1">
+              {items.value.map((c) => (
+                <CharacterCard key={c.id} character={c} game={game.value} />
+              ))}
+            </section>
+          )}
+        </div>
         {total.value > 24 ? (
           <nav class="flex gap-5 items-center justify-center mt-5">
             <button

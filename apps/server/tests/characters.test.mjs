@@ -210,6 +210,11 @@ test('Fusion search follows documented skill elements in both directions and pre
  assert.deepEqual((await get('/api/characters?reaction_with=grass')).items.map(c=>c.id),['erka']);
  assert.deepEqual((await get('/api/characters?reaction_with=earth&class=vanguard')).items.map(c=>c.id),['luni']);
  assert.equal((await get('/api/characters?reaction_with=earth&game=missing')).total,0);
+ const selected=await get('/api/characters?game=limit-zero-breakers&element=earth');
+ const expanded=await get('/api/characters?game=limit-zero-breakers&element=earth&include_partners=true');
+ assert.deepEqual(expanded.items.map(c=>c.id).sort(), [...new Set([...selected.items.map(c=>c.id),'autrey','luni'])].sort());
+ assert.deepEqual((await get('/api/characters?game=limit-zero-breakers&element=earth&include_partners=false')).items.map(c=>c.id), selected.items.map(c=>c.id));
+ assert.equal((await get('/api/characters?game=missing&element=earth&include_partners=true')).total,0);
  const reactions=(await get('/api/reactions?game=limit-zero-breakers')).items;
  const fusion=reactions.find(r=>r.code==='fusion');assert.equal(fusion.pairs.length,4);
  assert.equal(fusion.window_seconds,null);assert.ok(fusion.effects.every(e=>e.value===null && e.unit===null));

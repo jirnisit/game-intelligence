@@ -34,12 +34,13 @@ export function createApp(pool: pg.Pool, logger = false) {
       FROM elemental_reactions r WHERE ($1::text IS NULL OR r.game_id=$1) ORDER BY r.code`, [query.game ?? null]);
     return {items: rows.rows};
   });
-  type Filters = { q?: string; game?: string; element?: string; class?: string; buff?: string; target?: string; hold?: boolean; awakening?: number; reaction_with?: string; limit: number; offset: number };
+  type Filters = { q?: string; game?: string; element?: string; class?: string; buff?: string; target?: string; hold?: boolean; awakening?: number; reaction_with?: string; include_partners?: boolean; limit: number; offset: number };
   app.get<{ Querystring: Filters }>('/api/characters', {
     schema: { querystring: { type: 'object', additionalProperties: false, properties: {
       q: { type: 'string', maxLength: 100 }, game: { type: 'string', maxLength: 100 },
       element: { type: 'string', maxLength: 50 }, class: { type: 'string', maxLength: 50 },
       reaction_with: {type:'string',maxLength:50},
+      include_partners: {type:'boolean'},
       buff: { type: 'string', enum: stats }, target: { type: 'string', enum: ['self', 'all_allies'] },
       hold: { type: 'boolean' }, awakening: levelSchema,
       limit: { type: 'integer', minimum: 1, maximum: 100, default: 24 }, offset: { type: 'integer', minimum: 0, maximum: 100000, default: 0 },
@@ -49,7 +50,13 @@ export function createApp(pool: pg.Pool, logger = false) {
     const bind = (value: unknown) => { args.push(value); return `$${args.length}`; };
     const where = ['true'];
     if (f.q) { const p = bind(f.q); where.push(`(strpos(lower(c.name->>'en'),lower(${p}))>0 OR strpos(lower(c.name->>'th'),lower(${p}))>0)`); }
-    for (const [key, column] of [['game','game_id'],['element','element_code'],['class','class_code']] as const) if (f[key]) where.push(`c.${column}=${bind(f[key])}`);
+    for (const [key, column] of [['game','game_id'],['class','class_code']] as const) if (f[key]) where.push(`c.${column}=${bind(f[key])}`);
+    if (f.element) {
+      const p = bind(f.element);
+      const partner = f.include_partners ? ` OR EXISTS(SELECT 1 FROM skills sk JOIN skill_elements se ON se.skill_id=sk.id JOIN reaction_pairs rp ON rp.game_id=se.game_id
+        WHERE sk.character_id=c.id AND ((rp.element_a=${p} AND rp.element_b=se.element_code) OR (rp.element_b=${p} AND rp.element_a=se.element_code)))` : '';
+      where.push(`(c.element_code=${p}${partner})`);
+    }
     if (f.hold) where.push('EXISTS (SELECT 1 FROM skills a WHERE a.character_id=c.id AND a.has_hold)');
     if (f.reaction_with) {
       const p=bind(f.reaction_with);
