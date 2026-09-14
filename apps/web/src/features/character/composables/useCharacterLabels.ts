@@ -21,8 +21,8 @@ export function useCharacterLabels() {
   };
   const effectLabel = (type: string) =>
     ({
-      stat_increase: t("เพิ่มค่าสถานะ", "Stat buff"),
-      stat_decrease: t("ลดค่าสถานะ", "Stat reduction"),
+      stat_increase: t("บัพ", "Buff"),
+      stat_decrease: t("ดีบัพ", "Debuff"),
       heal: t("ฟื้น HP", "Healing"),
       damage_taken_increase: t("ศัตรูรับดาเมจเพิ่ม", "Enemy damage taken"),
       break_damage_taken_increase: t(

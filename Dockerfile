@@ -1,5 +1,5 @@
 FROM node:24-alpine AS base
-RUN npm install --global pnpm@11.19.0
+RUN npm install --global pnpm@12.4.1
 WORKDIR /app
 
 FROM base AS dependencies

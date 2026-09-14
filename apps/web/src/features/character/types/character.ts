@@ -1,5 +1,6 @@
 import type { Text } from "../../../core/types/text";
 export type Buff = {
+  element_code?: string | null;
   skill_id?: string | null;
   status_id?: string | null;
   awakening_level?: number | null;
@@ -28,6 +29,7 @@ export type Character = {
   notes: Text;
   has_hold: boolean;
   buffs: Buff[];
+  debuffs?: Buff[];
 };
 export type Effect = Buff & {
   required_statuses: {
@@ -117,5 +119,6 @@ export type Meta = {
   elements: { game_id: string; code: string; name: Text }[];
   classes: { game_id: string; code: string; name: Text }[];
   buffStats: string[];
+  debuffStats?: string[];
   reactions?: { id: string; game_id: string; name: Text; pairs: ReactionPair[] }[];
 };

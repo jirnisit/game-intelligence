@@ -23,6 +23,7 @@ export default defineComponent<Props>(
       element = ref(""),
       classCode = ref(""),
       buff = ref(""),
+      debuff = ref(""),
       recipient = ref(""),
       hold = ref(false),
       includePartners = ref(false),
@@ -60,6 +61,7 @@ export default defineComponent<Props>(
         include_partners: element.value && includePartners.value ? "true" : "",
         class: classCode.value,
         buff: buff.value,
+        debuff: debuff.value,
         target: recipient.value,
         hold: hold.value ? "true" : "",
       }))
@@ -92,11 +94,12 @@ export default defineComponent<Props>(
       includePartners.value = false;
       classCode.value = "";
       buff.value = "";
+      debuff.value = "";
       recipient.value = "";
       hold.value = false;
     }
     watch(
-      [q, game, element, classCode, buff, recipient, hold, includePartners],
+      [q, game, element, classCode, buff, debuff, recipient, hold, includePartners],
       () => {
         page.value = 0;
         clearTimeout(timer);
@@ -193,16 +196,16 @@ export default defineComponent<Props>(
             </select>
           </label>
           <label>
-            {t("บัฟที่เพิ่ม", "Stat buff")}
+            {t("บัพ", "Buff")}
             <select
               value={buff.value}
               onChange={(event) => {
                 buff.value = (event.target as HTMLSelectElement).value;
               }}
-              aria-label={t("บัฟที่เพิ่ม", "Stat buff")}
+              aria-label={t("บัพ", "Buff")}
               t-data="buff-filter"
             >
-              <option value="">{t("ทุกบัฟ", "Any buff")}</option>
+              <option value="">{t("ทุกบัพ", "Any buff")}</option>
               {meta.value.buffStats.map((s) => (
                 <option key={s} value={s}>
                   {stats[s] || s}
@@ -211,13 +214,23 @@ export default defineComponent<Props>(
             </select>
           </label>
           <label>
-            {t("ผู้รับบัฟ", "Buff recipient")}
+            {t("ดีบัพ", "Debuff")}
+            <select t-data="debuff-filter" aria-label={t("ดีบัพ", "Debuff")}
+              value={debuff.value} onChange={event => { debuff.value = (event.target as HTMLSelectElement).value; }}>
+              <option value="">{t("ทุกดีบัพ", "Any debuff")}</option>
+              {(meta.value.debuffStats ?? []).map(stat => <option key={stat} value={stat}>
+                {stat === "dmg_bonus" ? t("DMG ที่ได้รับ", "DMG Taken") : stat === "break_gauge" ? t("Break DMG ที่ได้รับ", "Break DMG Taken") : stats[stat] || stat}
+              </option>)}
+            </select>
+          </label>
+          <label>
+            {t("ผู้รับบัพ", "Buff recipient")}
             <select
               value={recipient.value}
               onChange={(event) => {
                 recipient.value = (event.target as HTMLSelectElement).value;
               }}
-              aria-label={t("ผู้รับบัฟ", "Buff recipient")}
+              aria-label={t("ผู้รับบัพ", "Buff recipient")}
               t-data="target-filter"
             >
               <option value="">{t("ทั้งหมด", "Any recipient")}</option>
@@ -254,7 +267,7 @@ export default defineComponent<Props>(
           </h2>
           <p>
             {t(
-              "รวมบัฟทุกระดับ Awakening • ต้องทำตามเงื่อนไขสกิล",
+              "รวมบัพและดีบัพทุกระดับ Awakening • ต้องทำตามเงื่อนไขสกิล",
               "Includes all Awakening levels • Skill conditions still apply",
             )}
           </p>
@@ -297,8 +310,8 @@ export default defineComponent<Props>(
               </h2>
               <p>
                 {t(
-                  "ลองเปลี่ยนบัฟหรือผู้รับบัฟ หากยังไม่มีข้อมูล ให้เพิ่มข้อมูลตัวละครก่อน",
-                  "Try another buff or recipient. If the archive is empty, add character data first.",
+                  "ลองเปลี่ยนบัพ ดีบัพ หรือผู้รับบัพ หากยังไม่มีข้อมูล ให้เพิ่มข้อมูลตัวละครก่อน",
+                  "Try another buff, debuff or recipient. If the archive is empty, add character data first.",
                 )}
               </p>
               <button onClick={reset}>{t("ล้างตัวกรอง", "Reset filters")}</button>
@@ -334,8 +347,8 @@ export default defineComponent<Props>(
         ) : null}
         <p class="text-body-s text-on-surface-variant mt-6.25">
           {t(
-            "ตัวกรองบัฟแยกจากการฟื้น HP และการเพิ่มดาเมจเฉพาะสกิล ส่วนบัฟที่ต้องผสมสถานะแสดงในหน้ารายละเอียด",
-            "Stat buffs are separate from healing and skill damage bonuses. Conversion-dependent buffs appear in character details.",
+            "ตัวกรองบัพแยกจากการฟื้น HP และการเพิ่มดาเมจเฉพาะสกิล ส่วนบัพที่ต้องผสมสถานะแสดงในหน้ารายละเอียด",
+            "Buffs are separate from healing and skill damage bonuses. Conversion-dependent buffs appear in character details.",
           )}
         </p>
       </>

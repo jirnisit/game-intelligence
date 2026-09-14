@@ -85,6 +85,7 @@ preserved; explicit null clears a nullable field. Removing JSON rows does not de
 ## API and filtering
 
 - `GET /api/characters/meta`: games, elements, classes, buff stats and reaction pairs.
+- `GET /api/characters?debuff=def`: searches documented enemy DEF reductions. Debuff filters combine with buff, game, element, and awakening filters; buff recipient applies only to buffs. `debuffStats` in metadata lists supported debuff stats.
 - `GET /api/characters?buff=atk`: searches every awakening level by default, including A2/A5-only buffs.
 - `GET /api/characters?buff=atk&awakening=0`: explicitly restricts analysis to active base effects.
 - `GET /api/characters?buff=crit_dmg&target=all_allies`: only documented team grants.
@@ -93,7 +94,8 @@ preserved; explicit null clears a nullable field. Removing JSON rows does not de
   `effect_variants` includes all levels for comparison. Each status has active `rule` plus all `rules`.
 - `GET /api/reactions?game=limit-zero-breakers`: shared reaction effects, pairs and unknown mechanics.
 
-The UI shows Base, Awakening 2 and Awakening 5 values together on cards and details. It does not
+Search cards show compact buff (green) and debuff (red) labels, deduplicated by effect type, stat, recipient and element across awakening levels. Values and conditions remain on details, which show Base, Awakening 2 and Awakening 5 together.
+The list API returns `debuffs` for enemy stat reductions and damage/Break damage taken increases. Status effects require a documented application with an overlapping awakening interval; a dependency alone is excluded. It does not
 filter away awakening-only abilities. Labels use the intersection of effect and application
 availability; a base status granted only at A2 is labelled A2. Alternative grant routes are merged.
 Recipients and effect types remain distinct. A tooltip/dependency alone is not a searchable grant.

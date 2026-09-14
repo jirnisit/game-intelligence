@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import type pg from 'pg';
 
 const stats = ['atk', 'def', 'hp', 'max_hp', 'crit_rate', 'crit_dmg', 'dmg_bonus', 'elemental_dmg'];
+const debuffStats = ['atk', 'def', 'elemental_res', 'dmg_bonus', 'break_gauge'];
 const levelSchema = { type: 'integer', minimum: 0, maximum: 5 };
 const active = (alias: string, level: string) => `${alias}.awakening_from <= ${level} AND (${alias}.awakening_until IS NULL OR ${level} < ${alias}.awakening_until)`;
 type Availability = {awakening_from: number; awakening_until: number | null};
@@ -22,7 +23,7 @@ export function createApp(pool: pg.Pool, logger = false) {
       pool.query('SELECT id, name FROM games ORDER BY id'),
       pool.query(`SELECT r.*, COALESCE((SELECT jsonb_agg(p ORDER BY p.element_a,p.element_b) FROM reaction_pairs p WHERE p.reaction_id=r.id),'[]') AS pairs FROM elemental_reactions r ORDER BY r.code`),
     ]);
-    return { elements: elements.rows, classes: classes.rows, games: games.rows, buffStats: stats, reactions: reactions.rows };
+    return { elements: elements.rows, classes: classes.rows, games: games.rows, buffStats: stats, debuffStats, reactions: reactions.rows };
   });
   app.get<{Querystring:{game?:string}}>('/api/reactions', {
     schema:{querystring:{type:'object',additionalProperties:false,properties:{game:{type:'string',maxLength:100}}}},
@@ -34,14 +35,14 @@ export function createApp(pool: pg.Pool, logger = false) {
       FROM elemental_reactions r WHERE ($1::text IS NULL OR r.game_id=$1) ORDER BY r.code`, [query.game ?? null]);
     return {items: rows.rows};
   });
-  type Filters = { q?: string; game?: string; element?: string; class?: string; buff?: string; target?: string; hold?: boolean; awakening?: number; reaction_with?: string; include_partners?: boolean; limit: number; offset: number };
+  type Filters = { q?: string; game?: string; element?: string; class?: string; buff?: string; debuff?: string; target?: string; hold?: boolean; awakening?: number; reaction_with?: string; include_partners?: boolean; limit: number; offset: number };
   app.get<{ Querystring: Filters }>('/api/characters', {
     schema: { querystring: { type: 'object', additionalProperties: false, properties: {
       q: { type: 'string', maxLength: 100 }, game: { type: 'string', maxLength: 100 },
       element: { type: 'string', maxLength: 50 }, class: { type: 'string', maxLength: 50 },
       reaction_with: {type:'string',maxLength:50},
       include_partners: {type:'boolean'},
-      buff: { type: 'string', enum: stats }, target: { type: 'string', enum: ['self', 'all_allies'] },
+      buff: { type: 'string', enum: stats }, debuff: { type: 'string', enum: debuffStats }, target: { type: 'string', enum: ['self', 'all_allies'] },
       hold: { type: 'boolean' }, awakening: levelSchema,
       limit: { type: 'integer', minimum: 1, maximum: 100, default: 24 }, offset: { type: 'integer', minimum: 0, maximum: 100000, default: 0 },
     } } },
@@ -64,11 +65,21 @@ export function createApp(pool: pg.Pool, logger = false) {
         WHERE sk.character_id=c.id AND ((rp.element_a=${p} AND rp.element_b=se.element_code) OR (rp.element_b=${p} AND rp.element_a=se.element_code)))`);
     }
     const availability = `($1::integer IS NULL OR ${active('e','$1')})`;
+    const debuffPredicate = `e.character_id=c.id AND e.target='enemy'
+          AND e.effect_type IN ('stat_decrease','damage_taken_increase','break_damage_taken_increase')
+          AND (e.skill_id IS NOT NULL OR e.awakening_level IS NOT NULL OR a.id IS NOT NULL)
+          AND greatest(e.awakening_from,COALESCE(a.awakening_from,0)) < least(COALESCE(e.awakening_until,6),COALESCE(a.awakening_until,6))
+          AND ${availability} AND ($1::integer IS NULL OR a.id IS NULL OR ${active('a','$1')})`;
     if (f.buff || f.target) {
       const conditions = ['e.character_id=c.id',availability];
       if (f.buff) conditions.push(`e.stat_code=${bind(f.buff)}`);
       if (f.target) conditions.push(`e.target=${bind(f.target)}`);
       where.push(`EXISTS (SELECT 1 FROM character_buffs e WHERE ${conditions.join(' AND ')})`);
+    }
+    if (f.debuff) {
+      where.push(`EXISTS (SELECT 1 FROM character_effects e LEFT JOIN status_applications a
+        ON a.character_id=e.character_id AND a.status_id=e.status_id AND a.target=e.target
+        WHERE ${debuffPredicate} AND e.stat_code=${bind(f.debuff)})`);
     }
     const predicate = where.join(' AND ');
     const total = await pool.query(`SELECT count(*)::integer AS total FROM characters c WHERE ($1::integer IS NULL OR $1 BETWEEN 0 AND 5) AND ${predicate}`, args);
@@ -78,7 +89,15 @@ export function createApp(pool: pg.Pool, logger = false) {
       COALESCE((SELECT jsonb_agg(jsonb_build_object('id',e.id,'skill_id',e.skill_id,'status_id',e.status_id,'awakening_level',e.awakening_level,'effect_type','stat_increase','stat_code',e.stat_code,'target',e.target,'value',e.value,'unit',e.unit,'per_stack',e.per_stack,'name',s.name,
         'awakening_from',e.awakening_from,'awakening_until',e.awakening_until,'condition',e.condition) ORDER BY e.stat_code,e.id,e.awakening_from)
         FROM character_buffs e LEFT JOIN statuses s ON s.id=e.status_id
-        WHERE e.character_id=c.id AND ${availability}), '[]') AS buffs
+        WHERE e.character_id=c.id AND ${availability}), '[]') AS buffs,
+      COALESCE((SELECT jsonb_agg(DISTINCT jsonb_build_object(
+        'id',e.id,'effect_type',e.effect_type,'stat_code',e.stat_code,'target',e.target,
+        'element_code',e.element_code,'value',e.value,'unit',e.unit,'per_stack',e.per_stack,
+        'awakening_from',greatest(e.awakening_from,COALESCE(a.awakening_from,0)),
+        'awakening_until',nullif(least(COALESCE(e.awakening_until,6),COALESCE(a.awakening_until,6)),6)))
+        FROM character_effects e LEFT JOIN status_applications a
+          ON a.character_id=e.character_id AND a.status_id=e.status_id AND a.target=e.target
+        WHERE ${debuffPredicate}), '[]') AS debuffs
       FROM characters c JOIN character_classes cl ON cl.game_id=c.game_id AND cl.code=c.class_code
       JOIN elements el ON el.game_id=c.game_id AND el.code=c.element_code
       WHERE ($1::integer IS NULL OR $1 BETWEEN 0 AND 5) AND ${predicate} ORDER BY c.name->>'en', c.id LIMIT ${limit} OFFSET ${offset}`, args);

@@ -9,6 +9,8 @@
     "test": "vitest run --environment happy-dom"
   },
   "dependencies": {
+    "@iconify-icons/material-symbols": "^2.0.3",
+    "@iconify/vue": "^5.0.1",
     "vue": "^3.5.0",
     "vue-router": "^4.6.4"
   },

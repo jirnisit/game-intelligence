@@ -80,6 +80,7 @@ beforeEach(async () => {
           ],
           classes: [],
           buffStats: ["crit_dmg"],
+          debuffStats: ["def", "dmg_bonus"],
         };
       else if (url.pathname === "/api/characters")
         data = { items: [character], total: 1 };
@@ -143,15 +144,18 @@ describe("Kab Game navigation and TSX", () => {
       requests.some((url) => url.includes("game=limit-zero-breakers")),
     ).toBe(true);
     change('[t-data="buff-filter"]', "crit_dmg");
+    change('[t-data="debuff-filter"]', "def");
     change('[t-data="target-filter"]', "all_allies");
     await new Promise((resolve) => setTimeout(resolve, 250));
     expect(requests.at(-1)).not.toContain("awakening=");
     expect(requests.at(-1)).toContain("buff=crit_dmg");
+    expect(requests.at(-1)).toContain("debuff=def");
     expect(requests.at(-1)).toContain("target=all_allies");
     await click('[t-data="text-button"]');
     await new Promise((resolve) => setTimeout(resolve, 250));
     expect(requests.at(-1)).toContain("game=limit-zero-breakers");
     expect(requests.at(-1)).not.toContain("buff=");
+    expect(root.querySelector('[t-data="debuff-filter"]')?.getAttribute("aria-label")).toBe("ดีบัพ");
   });
 
   it("opens all character variants without an awakening selector and returns through router links", async () => {
@@ -261,11 +265,12 @@ it("loads only detail data on direct character entry and reloads when the ID cha
 
 it("switches the app theme through the header without changing route or typography", async () => {
   const headingClass = root.querySelector("h1")!.className;
-  change('[t-data="theme-select"]', "dark");
+  await click('[t-data="theme-dark"]');
   await settle();
   expect(document.documentElement.dataset.theme).toBe("dark");
+  expect(root.querySelector('[t-data="theme-dark"]')?.getAttribute("aria-pressed")).toBe("true");
   expect(localStorage.getItem("kab-game-theme")).toBe("dark");
-  change('[t-data="theme-select"]', "light");
+  await click('[t-data="theme-light"]');
   await settle();
   expect(document.documentElement.dataset.theme).toBe("light");
   expect(root.querySelector("h1")!.className).toBe(headingClass);

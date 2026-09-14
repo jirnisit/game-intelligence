@@ -95,7 +95,7 @@ docker compose exec gint-nginx nginx -s reload
 
 ## ตรวจโค้ดบนเครื่อง
 
-ใช้ Node.js 24 และ pnpm 11.19.0
+ใช้ Node.js 24 และ pnpm 12.4.1
 
 ```sh
 pnpm install --frozen-lockfile
@@ -205,3 +205,9 @@ Choose typography separately, for example `text-body-s text-on-surface` for smal
 The header theme control offers System, Light, and Dark and saves the preference locally. Semantic roles switch through `data-theme` on the document element; new components need no theme-specific shades.
 `states.css` defines independent hover/focus/pressed/disabled opacity values and the `state-layer` utility; use it for custom interactive surfaces. Buttons receive it from base defaults. Disabled custom controls must also block interaction or use native disabled controls; opacity alone does not disable behavior.
 Typography, palette, role mapping, and interaction state each have their own file.
+
+### Icons
+
+Use `Icon` from `@iconify/vue` with individual icon-data imports from
+`@iconify-icons/material-symbols`. Pass the imported object to `icon` so Vite bundles
+only imported icons and the UI renders SVG without loading a font or calling the Iconify API.

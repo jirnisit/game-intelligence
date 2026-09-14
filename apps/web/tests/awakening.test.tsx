@@ -27,11 +27,11 @@ it("shows base and A2 values together with stack units and distinct labels", () 
   expect(root.textContent).toContain("6% / stack");
   expect([...root.querySelectorAll('[t-data="effect-awakening"]')].map(e=>e.textContent)).toEqual(["ปกติ","Awakening 2"]);
 });
-it("labels an awakening-only ATK buff on the search card", () => {
+it("shows a compact label for an awakening-only ATK buff", () => {
   const character: Character = {game_id:"test",id:"test",name:{en:"Test"},class_name:{en:"Class"},element_name:{en:"Earth"},rarity:"S",element_code:"earth",class_code:"destruction",race:{en:"Human"},notes:{},has_hold:false,buffs:[effect(2,20)]};
   mount(CharacterCard,{character,game:"test"});
-  expect(root.textContent).toContain("ATK +20% / stack");
-  expect(root.querySelector('[t-data="buff-awakening"]')?.textContent).toBe("Awakening 2 → ");
+  expect(root.querySelector('[t-data="buff-label"]')?.textContent.trim()).toBe("ATK - เฉพาะตัวเอง");
+  expect(root.textContent).not.toContain("20%");
 });
 it("displays replacement rule caps together instead of hiding the base cap", () => {
   const rule = (from:number, cap:number):StatusRule=>({id:`r-${from}`,awakening_from:from,awakening_until:from===0?5:null,max_stacks:cap,duration_kind:"unlimited",duration_seconds:null,refresh_on_stack:false,mechanics:{clear_all_stacks:true}});
@@ -45,7 +45,7 @@ it("describes Resonance dependency without a Sun/Moon conversion message", () =>
   expect(root.textContent).not.toContain("Sun");expect(root.textContent).not.toContain("Eclipse");
 });
 
-it("groups value and recipient changes in one search-card block", () => {
+it("keeps different recipients on separate compact labels", () => {
   const first=effect(0,50), second=effect(2,100);
   first.stat_code=second.stat_code="dmg_bonus";
   first.per_stack=second.per_stack=false;
@@ -53,17 +53,34 @@ it("groups value and recipient changes in one search-card block", () => {
   second.target="all_allies";
   const character: Character={game_id:"test",id:"test",name:{en:"Test"},class_name:{en:"Class"},element_name:{en:"Earth"},rarity:"S",element_code:"earth",class_code:"destruction",race:{},notes:{},has_hold:false,buffs:[second,first]};
   mount(CharacterCard,{character,game:"test"});
-  expect(root.querySelectorAll('[t-data="buff-group"]')).toHaveLength(1);
-  const lines=[...root.querySelectorAll('[t-data="effect-value"], [t-data="effect-recipient"], [t-data="effect-condition"]')].map(e=>e.textContent?.trim());
-  expect(lines).toEqual(["DMG +50%","Awakening 2 → DMG +100%","เฉพาะตัวเอง","Awakening 2 → ทั้งทีม","ขณะมี Awakening · ศัตรูอยู่ใน Break"]);
+  expect([...root.querySelectorAll('[t-data="buff-label"]')].map(e=>e.textContent?.trim())).toEqual(["DMG - ทั้งทีม", "DMG - เฉพาะตัวเอง"]);
 });
 
-it("keeps independent awakening effects separate from conditional Passive effects", () => {
+it("deduplicates the same stat and recipient across skills and awakenings", () => {
   const passive=effect(0,100), a2=effect(2,100);
   passive.skill_id="erka-passive";passive.status_id=null;
   a2.skill_id=null;a2.status_id=null;a2.awakening_level=2;
   passive.condition={requires_status:"awakening",target_state:"break"};a2.condition={target_state:"break"};
   const character: Character={game_id:"test",id:"test",name:{en:"Test"},class_name:{},element_name:{},rarity:"S",element_code:"earth",class_code:"destruction",race:{},notes:{},has_hold:false,buffs:[passive,a2]};
   mount(CharacterCard,{character,game:"test"});
-  expect(root.querySelectorAll('[t-data="buff-group"]')).toHaveLength(2);
+  expect(root.querySelectorAll('[t-data="buff-label"]')).toHaveLength(1);
+});
+
+it("keeps buffs and debuffs distinct and collapses debuff replacement values", () => {
+  const debuff = {...effect(0,10), target:"enemy", effect_type:"stat_decrease"};
+  const character: Character={game_id:"test",id:"test",name:{en:"Test"},class_name:{},element_name:{},rarity:"S",element_code:"earth",class_code:"destruction",race:{},notes:{},has_hold:false,buffs:[{...effect(0,20),target:"all_allies"}],debuffs:[debuff,{...debuff,id:"a5",awakening_from:5,value:30}]};
+  mount(CharacterCard,{character,game:"test"});
+  expect(root.querySelector('[t-data="buff-label"]')?.textContent.trim()).toBe("ATK - ทั้งทีม");
+  expect(root.querySelectorAll('[t-data="debuff-label"]')).toHaveLength(1);
+  expect(root.querySelector('[t-data="debuff-label"]')?.textContent.trim()).toBe("ATK");
+  expect(root.querySelector('[t-data="debuff-label"]')?.getAttribute("aria-label")).toContain("ดีบัฟ");
+});
+
+it("names Liz's auto recovery metric when the API returns a null stat code", () => {
+  const recovery = {...effect(0,25), stat_code: null, target:"all_allies", condition:{metric:"elemental_skill_gauge_auto_recovery"}};
+  const character = {game_id:"test",id:"liz",name:{en:"Liz"},class_name:{},element_name:{},rarity:"A",element_code:"water",class_code:"vanguard",race:{},notes:{},has_hold:false,buffs:[recovery,{...recovery,id:"a5",awakening_from:5,value:50}]};
+  mount(CharacterCard,{character,game:"test"});
+  expect(root.querySelectorAll('[t-data="buff-label"]')).toHaveLength(1);
+  expect(root.querySelector('[t-data="buff-label"]')?.textContent.trim()).toBe("ฟื้นเกจสกิลธาตุอัตโนมัติ - ทั้งทีม");
+  expect(root.textContent).not.toContain("null");
 });

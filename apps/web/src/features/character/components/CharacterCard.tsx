@@ -1,5 +1,4 @@
-import EffectSummary from "./EffectSummary";
-import { groupEffects } from "../utils/groupEffects";
+import { useCharacterLabels } from "../composables/useCharacterLabels";
 import { computed, defineComponent } from "vue";
 import { RouterLink } from "vue-router";
 import type { Character } from "../types/character";
@@ -12,7 +11,24 @@ interface Props {
 export default defineComponent<Props>(
   (props) => {
     const { t, label } = useLanguage();
-    const groups = computed(() => groupEffects(props.character.buffs));
+    const { stats, target } = useCharacterLabels();
+    const labels = computed(() => {
+      const unique = new Map<string, { key: string; text: string; debuff: boolean }>();
+      for (const [effects, debuff] of [[props.character.buffs, false], [props.character.debuffs ?? [], true]] as const) {
+        for (const effect of effects) {
+          const key = [debuff, effect.effect_type, effect.stat_code, effect.target, effect.element_code, effect.condition?.metric, effect.stat_code ? null : effect.status_id].join(":");
+          const stat = effect.condition?.metric === "elemental_skill_gauge_auto_recovery"
+            ? t("ฟื้นเกจสกิลธาตุอัตโนมัติ", "Elemental Gauge Auto Recovery")
+            : (effect.stat_code && (stats[effect.stat_code] || effect.stat_code))
+              || (effect.name ? label(effect.name) : t("เอฟเฟกต์", "Effect"));
+          const name = effect.effect_type === "damage_taken_increase" ? t("DMG ที่ได้รับ", "DMG Taken")
+            : effect.effect_type === "break_damage_taken_increase" ? t("Break DMG ที่ได้รับ", "Break DMG Taken")
+            : effect.element_code ? `${effect.element_code.toUpperCase()} ${stat}` : stat;
+          unique.set(key, { key, debuff, text: debuff ? name : `${name} - ${target(effect.target)}` });
+        }
+      }
+      return [...unique.values()];
+    });
     return () => (
       <RouterLink
         to={`/game/${encodeURIComponent(props.game)}/characters/${encodeURIComponent(props.character.id)}`}
@@ -51,12 +67,14 @@ export default defineComponent<Props>(
           {label(props.character.race)}
         </p>
         <div class="flex flex-wrap gap-1.75 min-h-22 content-start p-[20px_0]">
-          {groups.value.map(entries => <div key={entries[0].id} t-data="buff-group" class="bg-primary-container text-on-primary-container p-[7px_9px] rounded-md">
-            <EffectSummary entries={entries} />
-          </div>)}
-          {!props.character.buffs.length ? (
+          {labels.value.map(item => <span key={item.key} t-data={item.debuff ? "debuff-label" : "buff-label"}
+            aria-label={`${item.debuff ? t("ดีบัฟ", "Debuff") : t("บัฟ", "Buff")}: ${item.text}`}
+            class={["text-label-m inline-flex whitespace-nowrap px-2.5 py-1.5 rounded-md", item.debuff ? "bg-error-container text-on-error-container" : "bg-primary-container text-on-primary-container"]}>
+            {item.text}
+          </span>)}
+          {!labels.value.length ? (
             <span class="text-body-s text-on-surface-variant">
-              {t("ยังไม่มีบัฟค่าสถานะที่ยืนยัน", "No documented stat buffs")}
+              {t("ยังไม่มีบัฟหรือดีบัฟที่ยืนยัน", "No documented buffs or debuffs")}
             </span>
           ) : null}
         </div>

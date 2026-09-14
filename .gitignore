@@ -1,6 +1,7 @@
 node_modules/
 .pnpm-store/
 database/data/
+database/data-raw/
 dist/
 .env
 .env.*
