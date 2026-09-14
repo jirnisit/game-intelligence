@@ -1,0 +1,14 @@
+{
+  "eslint.workingDirectories": [
+    "./apps/web"
+  ],
+  "tailwindCSS.classFunctions": [
+    "clsx"
+  ],
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ]
+}

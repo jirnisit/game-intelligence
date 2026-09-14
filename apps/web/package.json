@@ -5,21 +5,33 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vue-tsc --noEmit && vite build",
-    "check": "vue-tsc --noEmit",
-    "test": "vitest run --environment happy-dom"
+    "check": "vue-tsc --noEmit && pnpm lint",
+    "test": "vitest run --environment happy-dom",
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "format": "pnpm lint:fix",
+    "format:check": "pnpm lint"
   },
   "dependencies": {
     "@iconify-icons/material-symbols": "^2.0.3",
     "@iconify/vue": "^5.0.1",
+    "clsx": "^2.1.1",
     "vue": "^3.5.0",
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@stylistic/eslint-plugin": "^5.10.0",
     "@tailwindcss/vite": "^4.0.0",
     "@vitejs/plugin-vue-jsx": "^5.1.6",
+    "eslint": "^9.39.5",
+    "eslint-plugin-tailwindcss": "^4.4.0",
+    "eslint-plugin-vue": "^10.11.0",
+    "globals": "^17.12.0",
     "happy-dom": "^20.14.5",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.9.0",
+    "typescript-eslint": "^8.70.0",
     "vite": "^7.0.0",
     "vitest": "^3.2.7",
     "vue-tsc": "^3.0.0"

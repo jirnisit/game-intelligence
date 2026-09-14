@@ -9,7 +9,7 @@
   position: relative;
   isolation: isolate;
   &::after {
-    content: "";
+    content: '';
     position: absolute;
     inset: 0;
     border-radius: inherit;
@@ -19,18 +19,18 @@
     transition: opacity 150ms;
   }
   @media (hover: hover) {
-    &:hover:not(:disabled):not([aria-disabled="true"])::after {
+    &:hover:not(:disabled):not([aria-disabled='true'])::after {
       opacity: var(--state-hover-opacity);
     }
   }
-  &:focus-visible:not(:disabled):not([aria-disabled="true"])::after {
+  &:focus-visible:not(:disabled):not([aria-disabled='true'])::after {
     opacity: var(--state-focus-opacity);
   }
-  &:active:not(:disabled):not([aria-disabled="true"])::after {
+  &:active:not(:disabled):not([aria-disabled='true'])::after {
     opacity: var(--state-pressed-opacity);
   }
   &:disabled,
-  &[aria-disabled="true"] {
+  &[aria-disabled='true'] {
     cursor: default;
     opacity: var(--state-disabled-opacity);
   }

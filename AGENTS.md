@@ -6,6 +6,12 @@
 - Never print `.env`, connection URIs or credentials. Do not migrate a remote database merely to test a change; use an isolated test database.
 - Do not commit or push unless requested. Do not infer deployment authorization from migration implementation work.
 
+## Code style and agent checks
+- Write web code to match `apps/web/eslint.config.mjs`: ESLint Stylistic formatting with no semicolons, single quotes, two-space indentation and trailing commas wherever supported in multiline constructs. Use single quotes in JSX, omit optional arrow parentheses, and keep one JSX attribute per line for multi-attribute tags. Follow configured blank-line rules and the 120-column limit (excluding strings, URLs, templates and regexes). Follow eslint-plugin-tailwindcss class ordering, including inside `clsx()`.
+- The user runs lint and formatting. Do not run `lint`, `lint:fix`, `format`, or `format:check`, or invoke ESLint/Prettier directly, unless explicitly requested. Do not run wrapper commands that invoke them, including `make check`, root `pnpm check`, and the web `check` script. Use standalone type checks, builds or relevant tests when necessary, after checking their scripts do not invoke lint/format.
+- Put Tailwind classes directly on the element they style; do not use descendant selectors such as `[&_span]`, `[&_h3]`, or `[&_.checkbox]`. Use `clsx` for composed class lists, and keep `ge-light` and `ge-dark` styling groups on separate lines. Game-element classes use the `ge-` prefix and are distinct from the app theme.
+- Prefer canonical numeric Tailwind spacing utilities such as `pt-10.5` and `pb-17.5` over pixel arbitrary values. Use even-pixel spacing; reserve arbitrary values for expressions or genuinely custom layouts and large dimensions.
+
 ## Vue architecture
 - Use Vue TSX (not `.vue`) with a feature-first structure: `src/app/`, `src/core/`, `src/features/`, `src/shared/`, and `src/main.ts`.
 - Always declare a local `interface Props` for every component and use the function overload `defineComponent<Props>((props) => { return () => (...) }, { props: ['propName', 'onChange'] })`; do not inline the props type in the function parameter. Declare every typed prop, including callbacks, in the runtime `props` list. Components without props still declare `interface Props {}` and use `defineComponent<Props>(() => { ... })`; do not use an options object with `setup()`.

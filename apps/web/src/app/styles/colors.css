@@ -1,3 +1,5 @@
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 /* Semantic roles are independently mapped for each theme.
    Tailwind inline aliases resolve the current element's semantic variables. */
 /* Expose semantic colors only; primitive shades are not UI utilities. */
@@ -33,7 +35,7 @@
   --color-outline-variant: var(--sys-outline-variant);
 }
 :root,
-:root[data-theme="light"] {
+:root[data-theme='light'] {
   color-scheme: light;
   --sys-primary: var(--palette-primary-700);
   --sys-on-primary: var(--palette-primary-50);
@@ -62,38 +64,7 @@
   --sys-outline: var(--palette-neutral-500);
   --sys-outline-variant: var(--palette-neutral-300);
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --sys-primary: var(--palette-primary-300);
-    --sys-on-primary: var(--palette-primary-950);
-    --sys-primary-container: var(--palette-primary-900);
-    --sys-on-primary-container: var(--palette-primary-100);
-    --sys-secondary: var(--palette-secondary-300);
-    --sys-on-secondary: var(--palette-secondary-950);
-    --sys-secondary-container: var(--palette-secondary-900);
-    --sys-on-secondary-container: var(--palette-secondary-100);
-    --sys-tertiary: var(--palette-tertiary-300);
-    --sys-on-tertiary: var(--palette-tertiary-950);
-    --sys-tertiary-container: var(--palette-tertiary-900);
-    --sys-on-tertiary-container: var(--palette-tertiary-100);
-    --sys-error: var(--palette-error-300);
-    --sys-on-error: var(--palette-error-950);
-    --sys-error-container: var(--palette-error-900);
-    --sys-on-error-container: var(--palette-error-100);
-    --sys-surface: var(--palette-neutral-950);
-    --sys-on-surface: var(--palette-neutral-50);
-    --sys-surface-container-lowest: var(--palette-neutral-950);
-    --sys-surface-container-low: var(--palette-neutral-900);
-    --sys-surface-container: var(--palette-neutral-900);
-    --sys-surface-container-high: var(--palette-neutral-800);
-    --sys-surface-container-highest: var(--palette-neutral-700);
-    --sys-on-surface-variant: var(--palette-neutral-300);
-    --sys-outline: var(--palette-neutral-400);
-    --sys-outline-variant: var(--palette-neutral-700);
-  }
-}
-:root[data-theme="dark"] {
+:root[data-theme='dark'] {
   color-scheme: dark;
   --sys-primary: var(--palette-primary-300);
   --sys-on-primary: var(--palette-primary-950);

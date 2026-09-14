@@ -1,8 +1,8 @@
-@import "tailwindcss";
-@import "./typography.css";
-@import "./palette.css";
-@import "./colors.css";
-@import "./states.css";
+@import 'tailwindcss';
+@import './typography.css';
+@import './palette.css';
+@import './colors.css';
+@import './states.css';
 
 @layer base {
   :root {
@@ -23,14 +23,14 @@
   button,
   input,
   select {
-    @apply text-body-m rounded-lg;
+    @apply rounded-lg text-body-m;
   }
   button {
     @apply state-layer cursor-pointer border border-outline-variant bg-surface-container-high px-4 py-2.5 text-on-surface;
   }
   input,
   select {
-    @apply min-h-11 w-full border border-outline bg-surface-container-lowest px-3 py-[11px] text-on-surface accent-primary;
+    @apply min-h-11 w-full border border-outline bg-surface-container-lowest px-3 py-2.5 text-on-surface accent-primary;
   }
   input::placeholder {
     @apply text-on-surface-variant;

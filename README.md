@@ -202,7 +202,7 @@ Raw `--palette-primary-500` variables are deliberately not exposed as Tailwind c
 Use `bg-primary text-on-primary` for a primary action, `bg-surface-container text-on-surface` for a card, and `text-on-surface-variant` for a hint.
 Choose typography separately, for example `text-body-s text-on-surface` for small normal text.
 
-The header theme control offers System, Light, and Dark and saves the preference locally. Semantic roles switch through `data-theme` on the document element; new components need no theme-specific shades.
+The header theme control offers System, Light, and Dark and saves the preference locally. The theme is initialized in `<head>` before rendering and follows OS changes in System mode. Tailwind’s `dark` custom variant and semantic colors share the `[data-theme="dark"]` selector on the document element, following https://tailwindcss.com/docs/dark-mode#using-a-data-attribute. New components continue using semantic roles without theme-specific shades.
 `states.css` defines independent hover/focus/pressed/disabled opacity values and the `state-layer` utility; use it for custom interactive surfaces. Buttons receive it from base defaults. Disabled custom controls must also block interaction or use native disabled controls; opacity alone does not disable behavior.
 Typography, palette, role mapping, and interaction state each have their own file.
 
@@ -211,3 +211,25 @@ Typography, palette, role mapping, and interaction state each have their own fil
 Use `Icon` from `@iconify/vue` with individual icon-data imports from
 `@iconify-icons/material-symbols`. Pass the imported object to `icon` so Vite bundles
 only imported icons and the UI renders SVG without loading a font or calling the Iconify API.
+
+### Web lint and formatting
+
+The web workspace uses ESLint flat config with Vue, TypeScript/TSX, and
+`@stylistic/eslint-plugin`. Prettier is not used. Preferences include no semicolons,
+single quotes (also in JSX), two-space indentation, multiline trailing commas,
+optional arrow parentheses omitted, and one JSX attribute per line for multi-attribute tags.
+Blank-line rules separate imports, declarations, functions, types, exports and returns.
+The 120-column rule reports long lines; it does not automatically reflow expressions.
+Strings, URLs, template literals and regular expressions are exempt.
+
+`eslint-plugin-tailwindcss` reads `src/app/styles/base.css` for Tailwind v4 class
+sorting and canonical utilities, including strings and object keys inside `clsx()`.
+
+Run `pnpm --filter @game-intelligence/web lint` or `lint:fix` to check or fix code.
+`format` and `format:check` remain aliases for `lint:fix` and `lint` respectively.
+These commands cover JavaScript/TypeScript/TSX, not CSS, HTML, JSON or Markdown formatting.
+`make check` also runs the web lint check.
+
+With the VS Code ESLint extension installed, root `.vscode/settings.json` selects
+`apps/web` as the ESLint working directory and applies ESLint fixes on explicit save.
+Prettier format-on-save is disabled for this workspace.
