@@ -24,7 +24,7 @@ export default defineComponent<Props>(
             class='state-layer flex items-center gap-3.5 text-label-m-emphasized max-[580px]:text-label-s'
           >
             <img
-              class='h-11 w-11 object-contain max-[580px]:h-9 max-[580px]:w-9'
+              class='size-11 object-contain max-[580px]:size-9'
               src='/logo.svg'
               alt=''
             />

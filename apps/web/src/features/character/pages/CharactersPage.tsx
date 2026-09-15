@@ -173,7 +173,7 @@ export default defineComponent<Props>(
                   >
                     <span
                       aria-hidden='true'
-                      class={`h-5 w-5 rounded-full transition-transform motion-reduce:transition-none ${includePartners.value ? 'translate-x-5 bg-on-primary' : 'translate-x-0 bg-outline'}`}
+                      class={`size-5 rounded-full transition-transform motion-reduce:transition-none ${includePartners.value ? 'translate-x-5 bg-on-primary' : 'translate-x-0 bg-outline'}`}
                     />
                   </button>
                   <span class='text-body-s text-on-surface'>

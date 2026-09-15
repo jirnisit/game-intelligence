@@ -214,8 +214,8 @@ only imported icons and the UI renders SVG without loading a font or calling the
 
 ### Web lint and formatting
 
-The web workspace uses ESLint flat config with Vue, TypeScript/TSX, and
-`@stylistic/eslint-plugin`. Prettier is not used. Preferences include no semicolons,
+The web workspace uses ESLint 10 with `apps/web/eslint.config.ts`, Vue, TypeScript/TSX, and
+`@stylistic/eslint-plugin`. The `jiti` development dependency loads the TypeScript config in Node.js. Prettier is not used. Preferences include no semicolons,
 single quotes (also in JSX), two-space indentation, multiline trailing commas,
 optional arrow parentheses omitted, and one JSX attribute per line for multi-attribute tags.
 Blank-line rules separate imports, declarations, functions, types, exports and returns.

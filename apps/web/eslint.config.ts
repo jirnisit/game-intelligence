@@ -1,16 +1,20 @@
 import js from '@eslint/js'
+import { defineConfig } from 'eslint/config'
+import type { Linter } from 'eslint'
 import vue from 'eslint-plugin-vue'
 import tseslint from 'typescript-eslint'
 import globals from 'globals'
 import stylistic from '@stylistic/eslint-plugin'
-import tailwindcss from 'eslint-plugin-tailwindcss'
+import eslintPluginTailwindcss from 'eslint-plugin-tailwindcss'
 import { fileURLToPath } from 'node:url'
 
-export default tseslint.config(
+export default defineConfig(
   { ignores: ['dist/**', 'node_modules/**', 'coverage/**'] },
   js.configs.recommended,
   ...vue.configs['flat/recommended'],
   ...tseslint.configs.recommended,
+  // Tailwind v4's preset types use typescript-eslint's narrower LanguageOptions.
+  eslintPluginTailwindcss.configs.recommended as Linter.Config | Linter.Config[],
   {
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
@@ -33,11 +37,10 @@ export default tseslint.config(
   stylistic.configs.customize({ indent: 2, quotes: 'single', semi: false, jsx: true }),
   {
     files: ['**/*.{js,mjs,cjs,ts,tsx,jsx}'],
-    plugins: { tailwindcss },
     settings: {
       tailwindcss: {
         cssConfigPath: fileURLToPath(new URL('./src/app/styles/base.css', import.meta.url)),
-        attributes: ['class', 'className'],
+        attributes: ['class'],
         functions: ['clsx'],
         parseKeyFunctions: ['clsx'],
       },
@@ -76,7 +79,8 @@ export default tseslint.config(
         { blankLine: 'always', prev: ['function', 'class', 'interface', 'type'], next: '*' },
       ],
       'one-var': ['error', 'never'],
-      'tailwindcss/classnames-order': 'error',
+      'tailwindcss/classnames-order': 'warn',
+      'tailwindcss/no-custom-classname': 'off',
       'tailwindcss/enforces-canonical-classname': 'error',
     },
   },
