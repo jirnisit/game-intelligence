@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import { defineComponent } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import { provideLanguage } from './providers/language'
@@ -68,12 +69,12 @@ export default defineComponent<Props>(
                   onClick={() => {
                     theme.value = option.value
                   }}
-                  class={[
+                  class={clsx(
                     'state-layer inline-flex size-11 items-center justify-center rounded-full border-0 p-0',
                     theme.value === option.value
                       ? 'bg-secondary-container text-on-secondary-container'
                       : 'bg-transparent text-on-surface-variant',
-                  ]}
+                  )}
                 >
                   <Icon
                     icon={option.icon}

@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import { computed, defineComponent, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useLanguage } from '../../../shared/composables/useLanguage'
 import { useGame } from '../../../shared/composables/useGame'
@@ -169,11 +170,19 @@ export default defineComponent<Props>(
                     onClick={() => {
                       includePartners.value = !includePartners.value
                     }}
-                    class={`state-layer relative inline-flex h-8 min-h-0 w-13 shrink-0 items-center rounded-full border-2 p-1 ${includePartners.value ? 'border-primary bg-primary text-on-primary' : 'border-outline bg-surface-container-high text-on-surface-variant'}`}
+                    class={clsx(
+                      'state-layer relative inline-flex h-8 min-h-0 w-13 shrink-0 items-center rounded-full border-2 p-1',
+                      includePartners.value
+                        ? 'border-primary bg-primary text-on-primary'
+                        : 'border-outline bg-surface-container-high text-on-surface-variant',
+                    )}
                   >
                     <span
                       aria-hidden='true'
-                      class={`size-5 rounded-full transition-transform motion-reduce:transition-none ${includePartners.value ? 'translate-x-5 bg-on-primary' : 'translate-x-0 bg-outline'}`}
+                      class={clsx(
+                        'size-5 rounded-full transition-transform motion-reduce:transition-none',
+                        includePartners.value ? 'translate-x-5 bg-on-primary' : 'translate-x-0 bg-outline',
+                      )}
                     />
                   </button>
                   <span class='text-body-s text-on-surface'>
