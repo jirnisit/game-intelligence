@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
   <g fill="none" stroke="#000" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
     <circle cx="27" cy="27" r="19"/>
-    <path d="M41 41 L58 58"/>
+    <path d="M41 41 L52 52"/>
   </g>
   <text x="27" y="32" text-anchor="middle"
         font-family="Arial, Helvetica, sans-serif"

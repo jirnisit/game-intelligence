@@ -13,15 +13,6 @@ export default defineComponent<Props>(
 
     return () => (
       <>
-        <RouterLink
-          to='/'
-          t-data='back-link'
-          class='state-layer mb-6 inline-block text-body-s text-primary'
-        >
-          ←
-          {' '}
-          {t('เกมทั้งหมด', 'All games')}
-        </RouterLink>
         <div>
           <img
             class='h-25 w-60 max-w-full object-contain object-left'
